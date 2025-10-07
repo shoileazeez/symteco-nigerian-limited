@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import QuoteModal from "@/components/sections/QuoteModal";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -87,13 +88,18 @@ const Header = () => {
 
             {/* CTA Button & Mobile Menu */}
             <div className="flex items-center space-x-4">
-              <Button
-                className={`hidden md:inline-flex ${
-                  isScrolled ? "btn-hero-primary" : "btn-hero-secondary"
-                }`}
-              >
-                Get a Quote
-              </Button>
+              {/* Quote Modal Trigger for Desktop */}
+              <QuoteModal
+                trigger={
+                  <Button
+                    className={`hidden md:inline-flex ${
+                      isScrolled ? "btn-hero-primary" : "btn-hero-secondary"
+                    }`}
+                  >
+                    Get a Quote
+                  </Button>
+                }
+              />
 
               {/* Mobile Menu Button */}
               <button
@@ -125,9 +131,14 @@ const Header = () => {
                     {item.name}
                   </Link>
                 ))}
-                <Button className="btn-hero-primary w-full mt-4">
-                  Get a Quote
-                </Button>
+                {/* Quote Modal Trigger for Mobile */}
+                <QuoteModal
+                  trigger={
+                    <Button className="btn-hero-primary w-full mt-4">
+                      Get a Quote
+                    </Button>
+                  }
+                />
               </nav>
             </div>
           </div>

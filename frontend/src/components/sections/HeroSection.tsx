@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
+import QuoteModal from "@/components/sections/QuoteModal";
 import { Shield, Award, Users, CheckCircle } from "lucide-react";
 import heroImage from "@/assets/hero-industrial.jpg";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -47,12 +49,12 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-            <Button className="btn-hero-secondary">
+            <Link to="/services" className="btn-hero-secondary inline-flex items-center justify-center px-4 py-2 rounded-md font-medium">
               View Our Services
-            </Button>
-            <Button className="btn-hero-outline">
-              Request a Quote
-            </Button>
+            </Link>
+            <QuoteModal
+              trigger={<Button className="btn-hero-outline">Request a Quote</Button>}
+            />
           </div>
 
           {/* Key Features */}

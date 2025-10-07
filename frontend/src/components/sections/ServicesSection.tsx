@@ -1,8 +1,10 @@
 import { Zap, Cog, Shield, Wrench, CircuitBoard, Building } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import electricalImage from "@/assets/services-electrical.jpg";
 import mechanicalImage from "@/assets/services-mechanical.jpg";
 import panelsImage from "@/assets/services-panels.jpg";
+import QuoteModal from "@/components/sections/QuoteModal";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const ServicesSection = () => {
   const services = [
@@ -103,13 +105,6 @@ const ServicesSection = () => {
                     </li>
                   ))}
                 </ul>
-
-                {/* CTA */}
-                <div className="pt-4">
-                  <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    Learn More
-                  </Button>
-                </div>
               </div>
             </div>
           ))}
@@ -120,9 +115,9 @@ const ServicesSection = () => {
           <p className="text-lg text-muted-foreground mb-6">
             Need a custom solution? Our experts are ready to help.
           </p>
-          <Button className="btn-hero-primary">
-            Get Custom Quote
-          </Button>
+          <QuoteModal 
+          trigger={<Button className="btn-hero-primary">Get Custom Quote</Button>}
+          />
         </div>
       </div>
     </section>

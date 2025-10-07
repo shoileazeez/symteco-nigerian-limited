@@ -1,6 +1,7 @@
 import { Mail, Phone, MapPin, Facebook, Linkedin, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -36,20 +37,20 @@ const Footer = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">Quick Links</h3>
               <ul className="space-y-2">
-                {[
-                  { name: "About Us", href: "#about" },
-                  { name: "Our Services", href: "#services" },
-                  { name: "Projects", href: "#projects" },
-                  { name: "Contact Us", href: "#contact" },
-                  { name: "Request Quote", href: "#quote" },
+                {[ 
+                  { name: "About Us", href: "/about" },
+                  { name: "Our Services", href: "/services" },
+                  { name: "Projects", href: "/projects" },
+                  { name: "Contact Us", href: "/contact" },
+                  { name: "Request Quote", href: "/#quote" },
                 ].map((link) => (
                   <li key={link.name}>
-                    <a
-                      href={link.href}
+                    <Link
+                      to={link.href}
                       className="text-primary-foreground/80 hover:text-secondary transition-colors"
                     >
                       {link.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
