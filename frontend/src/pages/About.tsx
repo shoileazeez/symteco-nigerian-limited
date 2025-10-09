@@ -59,22 +59,22 @@ const About = () => {
           <div className="container-padding">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold text-foreground mb-6">Our Story</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-6">Introduction</h2>
                 <p className="text-muted-foreground mb-6">
-                  Symteco Nigeria Limited was established with a vision to become Nigeria's leading electrical and mechanical contracting company. We have built our reputation on delivering high-quality installations, innovative solutions, and exceptional customer service.
+                  SYMTECO NIGERIA LIMITED was established as a bigger engineering company to take over from SYMTECO TECHNICALS as we previously operated to offer services in electrical and mechanical engineering services, proffering solutions in industrial and domestic electrical and mechanical installation, metal fabrication, supply of cables and electrical equipment, rural electrification projects, construction of medium voltage distribution networks.
                 </p>
                 <p className="text-muted-foreground mb-6">
-                  Our team of certified engineers and technicians brings decades of combined experience to every project, ensuring that we meet the highest standards of safety, quality, and efficiency.
+                  We offer a custom design, build and installation services for low voltage distribution switchboards, motor control centre and control panels, from replacement of obsolete or malfunctioning panels to complete new system. We have the ability to meet all your requirements.
                 </p>
                 <p className="text-muted-foreground">
-                  Today, we serve clients across Nigeria, from small residential projects to large-scale industrial installations, always maintaining our commitment to excellence and customer satisfaction.
+                  We have carried out several electrical and mechanical installations within the nation, in which meeting local and international standards, public and customer's safety have always been our goals. Making sure of our customer's satisfactions is as well not compromised.
                 </p>
               </div>
               <div className="relative">
                 <div className="bg-gradient-to-br from-primary to-secondary rounded-xl h-96 flex items-center justify-center">
                   <div className="text-white text-center">
-                    <h3 className="text-2xl font-bold mb-4">Professional Excellence</h3>
-                    <p className="text-white/90">Certified • Licensed • Insured</p>
+                    <h3 className="text-2xl font-bold mb-4">50+ Employees</h3>
+                    <p className="text-white/90">Skilled • Experienced • Certified</p>
                   </div>
                 </div>
               </div>

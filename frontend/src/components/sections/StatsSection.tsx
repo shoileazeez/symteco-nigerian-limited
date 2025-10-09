@@ -5,9 +5,9 @@ const StatsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const stats = [
-    { number: 150, label: "Projects Completed", suffix: "+" },
-    { number: 15, label: "Years of Experience", suffix: "+" },
-    { number: 50, label: "Certified Engineers", suffix: "+" },
+    { number: 400, label: "Transformers Installed", suffix: "+" },
+    { number: 13, label: "Years of Experience", suffix: "+" },
+    { number: 50, label: "Skilled Employees", suffix: "+" },
     { number: 98, label: "Client Satisfaction", suffix: "%" },
   ];
 
@@ -113,19 +113,19 @@ const StatsSection = () => {
           <div className="flex flex-wrap justify-center items-center gap-8 text-white/80">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium">ISO 9001:2015 Certified</span>
+              <span className="text-sm font-medium">RC 1025558 Registered</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium">NECA Registered</span>
+              <span className="text-sm font-medium">PHCN Approved</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium">COREN Approved</span>
+              <span className="text-sm font-medium">Est. April 2012</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium">Zero Accident Record</span>
+              <span className="text-sm font-medium">International Partners</span>
             </div>
           </div>
         </div>

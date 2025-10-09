@@ -9,36 +9,69 @@ const ProjectsSection = () => {
   const projects = [
     {
       id: 1,
-      title: "Dangote Cement Factory Power Upgrade",
-      category: "Industrial Electrical",
-      location: "Ogun State, Nigeria",
-      year: "2024",
+      title: "5MVA 33/11KV Substation Installation",
+      category: "Substation Installation",
+      location: "Elizade University",
+      year: "2012",
       image: electricalImage,
-      description: "Complete electrical infrastructure upgrade including 33kV switchgear installation and power distribution optimization.",
-      tags: ["33kV Systems", "Switchgear", "Power Distribution"],
+      description: "Installation and commissioning of 5MVA 33/11KV substation and Ring Mains Unit with extension at Elizade University.",
+      tags: ["33KV Systems", "5MVA Substation", "Ring Mains Unit"],
       status: "Completed"
     },
     {
       id: 2,
-      title: "Lagos Industrial Estate HVAC Installation",
-      category: "Mechanical Systems",
-      location: "Lagos State, Nigeria",
-      year: "2023",
-      image: mechanicalImage,
-      description: "Large-scale HVAC installation for multi-tenant industrial complex with energy-efficient cooling systems.",
-      tags: ["HVAC", "Industrial", "Energy Efficient"],
+      title: "1X15MVA 33/11KV Injection Station",
+      category: "Injection Station",
+      location: "Victoria Island, Lagos",
+      year: "2015",
+      image: panelsImage,
+      description: "Completion and commissioning of 1X15MVA 33/11KV injection station for enhanced power distribution.",
+      tags: ["15MVA", "Injection Station", "Power Distribution"],
       status: "Completed"
     },
     {
       id: 3,
-      title: "Petroleum Refinery Control Panel Fabrication",
-      category: "Panel Fabrication",
-      location: "Rivers State, Nigeria",
-      year: "2024",
+      title: "LVDS to HVDS Network Conversion",
+      category: "Network Conversion",
+      location: "Agege, Lagos (PHCN PMU)",
+      year: "2010",
+      image: mechanicalImage,
+      description: "Installation of over 400 units of 50KVA transformer on LVDS to HVDS distribution network conversion project.",
+      tags: ["50KVA Transformers", "Network Conversion", "PHCN Project"],
+      status: "Completed"
+    },
+    {
+      id: 4,
+      title: "600KVA Industrial Stabilizer",
+      category: "Industrial Equipment",
+      location: "Vital Products, Ikeja",
+      year: "2007",
+      image: electricalImage,
+      description: "Installation and commissioning of 600KVA Low voltage stabilizer incorporated with Dimmerstat for industrial operations.",
+      tags: ["600KVA Stabilizer", "Industrial", "Low Voltage"],
+      status: "Completed"
+    },
+    {
+      id: 5,
+      title: "500KVA Substation Installation",
+      category: "Substation",
+      location: "Festac, Lagos",
+      year: "2009",
       image: panelsImage,
-      description: "Custom control panel fabrication for petroleum refinery operations with advanced automation systems.",
-      tags: ["Control Panels", "Automation", "Petroleum"],
-      status: "In Progress"
+      description: "Processing, construction and installation of 500KVA 11KV/415V substation for residential and commercial use.",
+      tags: ["500KVA", "11KV/415V", "Substation"],
+      status: "Completed"
+    },
+    {
+      id: 6,
+      title: "Earthing System for Generation Plant",
+      category: "Earthing Systems",
+      location: "SPN Packaging, Ikeja",
+      year: "2009",
+      image: mechanicalImage,
+      description: "Earthing of 5Nos 500KVA Generating Plant and general earthing system installation for industrial facility.",
+      tags: ["Earthing System", "500KVA Generators", "Industrial Safety"],
+      status: "Completed"
     }
   ];
 

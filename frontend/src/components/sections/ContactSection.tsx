@@ -31,7 +31,7 @@ const ContactSection = () => {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/api/contact", formData);
+      await axios.post("/api/contact", formData);
       toast({
         title: "Message Sent Successfully!",
         description: "Thank you for your inquiry. We'll get back to you within 24 hours.",

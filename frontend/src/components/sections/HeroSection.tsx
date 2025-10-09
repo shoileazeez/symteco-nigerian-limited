@@ -23,28 +23,28 @@ const HeroSection = () => {
           <div className="flex justify-center items-center space-x-8 mb-8 opacity-90">
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-secondary" />
-              <span className="text-sm font-medium">Licensed & Insured</span>
+              <span className="text-sm font-medium">RC 1025558</span>
             </div>
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-secondary" />
-              <span className="text-sm font-medium">ISO 9001:2015</span>
+              <span className="text-sm font-medium">Est. 2012</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-secondary" />
-              <span className="text-sm font-medium">15+ Years Experience</span>
+              <span className="text-sm font-medium">50+ Employees</span>
             </div>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
-            Powering Nigeria's
-            <span className="text-secondary block">Industrial Future</span>
+            SYMTECO NIGERIA LIMITED
+            <span className="text-secondary block">Electrical & Mechanical Engineering</span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-            Expert electrical and mechanical solutions for industrial excellence. 
-            From switchgear installation to complete facility automation.
+            Professional integrity in steady and progressive growth, providing indigenously oriented engineering services 
+            that challenge foreign dominance with equivalent or better solutions.
           </p>
 
           {/* CTA Buttons */}
