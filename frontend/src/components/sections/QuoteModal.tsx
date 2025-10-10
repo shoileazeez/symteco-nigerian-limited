@@ -30,7 +30,7 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
     setSuccess("");
     setError("");
     try {
-      await axios.post("http://localhost:5000/api/contact", {
+      await axios.post("/api/contact", {
         ...formData,
         service: formData.service || "Quote Request",
         message: formData.details
