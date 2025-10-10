@@ -19,9 +19,11 @@ const ContactSection = () => {
     service: "",
     message: ""
   });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!formData.name || !formData.email || !formData.message) {
       toast({
         title: "Missing Information",
@@ -30,11 +32,13 @@ const ContactSection = () => {
       });
       return;
     }
+    
+    setLoading(true);
     try {
       await axios.post("/api/contact", formData);
       toast({
         title: "Message Sent Successfully!",
-        description: "Thank you for your inquiry. We'll get back to you within 24 hours.",
+        description: "Thank you for your inquiry. We'll review your message and get back to you within 24 hours.",
       });
       setFormData({
         name: "",
@@ -51,6 +55,7 @@ const ContactSection = () => {
         variant: "destructive"
       });
     }
+    setLoading(false);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -160,8 +165,8 @@ const ContactSection = () => {
                   />
                 </div>
 
-                <Button type="submit" className="btn-hero-primary w-full">
-                  Send Message
+                <Button type="submit" className="btn-hero-primary w-full" disabled={loading}>
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>

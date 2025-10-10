@@ -6,6 +6,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.next
+.vercel
+out
+build
+.astro
+# Dependency directories
+.bun.lockb
 
 node_modules
 dist

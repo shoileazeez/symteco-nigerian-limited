@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import QuoteModal from "@/components/sections/QuoteModal";
 import { Shield, Award, Users, CheckCircle } from "lucide-react";
-import heroImage from "@/assets/hero-industrial.jpg";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const HeroSection = () => {
   return (
@@ -10,7 +9,7 @@ const HeroSection = () => {
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroImage})` }}
+        style={{ backgroundImage: `url(/hero-industrial.jpg)` }}
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-overlay" />
@@ -49,7 +48,7 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-            <Link to="/services" className="btn-hero-secondary inline-flex items-center justify-center px-4 py-2 rounded-md font-medium">
+            <Link href="/services" className="btn-hero-secondary inline-flex items-center justify-center px-4 py-2 rounded-md font-medium">
               View Our Services
             </Link>
             <QuoteModal

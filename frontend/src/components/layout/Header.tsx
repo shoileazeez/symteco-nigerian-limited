@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import QuoteModal from "@/components/sections/QuoteModal";
 
 const Header = () => {
@@ -61,7 +61,7 @@ const Header = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold">
+              <Link href="/" className="text-2xl font-bold">
                 <span className={isScrolled ? "text-primary" : "text-white md:text-primary"}>
                   SYMTECO
                 </span>
@@ -76,7 +76,7 @@ const Header = () => {
               {navigation.map((item) => (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   className={`font-medium transition-colors hover:text-secondary ${
                     isScrolled ? "text-foreground" : "text-white"
                   }`}
@@ -124,7 +124,7 @@ const Header = () => {
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
-                    to={item.href}
+                    href={item.href}
                     className="text-foreground font-medium hover:text-secondary transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
