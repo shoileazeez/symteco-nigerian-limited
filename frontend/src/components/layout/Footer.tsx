@@ -1,7 +1,7 @@
 import { Mail, Phone, MapPin, Facebook, Linkedin, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const Footer = () => {
   return (
@@ -46,7 +46,7 @@ const Footer = () => {
                 ].map((link) => (
                   <li key={link.name}>
                     <Link
-                      to={link.href}
+                      href={link.href}
                       className="text-primary-foreground/80 hover:text-secondary transition-colors"
                     >
                       {link.name}

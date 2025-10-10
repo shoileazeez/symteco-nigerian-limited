@@ -5,8 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -17,8 +19,6 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
     details: ""
   });
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -26,16 +26,29 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.details) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
-    setSuccess("");
-    setError("");
     try {
       await axios.post("/api/contact", {
         ...formData,
         service: formData.service || "Quote Request",
         message: formData.details
       });
-      setSuccess("Quote request sent successfully!");
+      
+      toast({
+        title: "Quote Request Sent Successfully!",
+        description: "Thank you for your quote request. We'll review your requirements and get back to you within 24 hours.",
+      });
+      
       setFormData({
         name: "",
         email: "",
@@ -44,8 +57,14 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
         service: "",
         details: ""
       });
+      
+      setOpen(false); // Close the modal on success
     } catch (err) {
-      setError("Failed to send quote request. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to send quote request. Please try again later.",
+        variant: "destructive"
+      });
     }
     setLoading(false);
   };
@@ -82,9 +101,9 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
             <Label htmlFor="details">Project Details *</Label>
             <Textarea id="details" value={formData.details} onChange={e => handleInputChange("details", e.target.value)} required rows={5} />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Sending..." : "Send Quote Request"}</Button>
-          {success && <div className="text-green-600 text-sm mt-2">{success}</div>}
-          {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Sending..." : "Send Quote Request"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

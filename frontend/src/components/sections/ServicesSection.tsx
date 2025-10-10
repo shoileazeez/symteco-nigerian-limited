@@ -1,9 +1,6 @@
 import { Zap, Cog, Shield, Wrench, CircuitBoard, Building } from "lucide-react";
-import electricalImage from "@/assets/services-electrical.jpg";
-import mechanicalImage from "@/assets/services-mechanical.jpg";
-import panelsImage from "@/assets/services-panels.jpg";
 import QuoteModal from "@/components/sections/QuoteModal";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const ServicesSection = () => {
@@ -12,42 +9,42 @@ const ServicesSection = () => {
       icon: Zap,
       title: "Industrial Electrical Installation",
       description: "Complete electrical infrastructure for industrial facilities, from power distribution to control systems.",
-      image: electricalImage,
+      image: "/services-electrical.jpg",
       features: ["High & Low Voltage Systems", "Power Distribution", "Control Panels", "Safety Systems"]
     },
     {
       icon: Cog,
       title: "Mechanical Installation",
       description: "Advanced mechanical systems installation including HVAC, piping, and industrial machinery setup.",
-      image: mechanicalImage,
+      image: "/services-mechanical.jpg",
       features: ["HVAC Systems", "Industrial Piping", "Machinery Installation", "Ventilation Systems"]
     },
     {
       icon: CircuitBoard,
       title: "Switchgear & Panel Fabrication",
       description: "Custom switchgear design and fabrication with state-of-the-art control panel manufacturing.",
-      image: panelsImage,
+      image: "/services-panels.jpg",
       features: ["Custom Switchgear", "Control Panels", "MCC Panels", "Protection Systems"]
     },
     {
       icon: Shield,
       title: "Low & Medium Voltage Systems",
       description: "Specialized installation and maintenance of low and medium voltage electrical systems.",
-      image: electricalImage,
+      image: "/services-electrical.jpg",
       features: ["LV/MV Installation", "System Protection", "Load Management", "Power Quality"]
     },
     {
       icon: Wrench,
       title: "Maintenance & Support",
       description: "Comprehensive maintenance services and 24/7 support for all electrical and mechanical systems.",
-      image: mechanicalImage,
+      image: "/services-mechanical.jpg",
       features: ["Preventive Maintenance", "Emergency Support", "System Upgrades", "Performance Optimization"]
     },
     {
       icon: Building,
       title: "General Contracting",
       description: "Full-scale project management and general contracting services for industrial facilities.",
-      image: panelsImage,
+      image: "/services-panels.jpg",
       features: ["Project Management", "Facility Construction", "System Integration", "Quality Assurance"]
     }
   ];
