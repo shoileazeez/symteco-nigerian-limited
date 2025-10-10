@@ -1,73 +1,85 @@
-# Welcome to your Lovable project
 
-## Project info
+# Symteco Nigerian Limited Website
 
-**URL**: https://lovable.dev/projects/1d9d12aa-290c-40a7-8b6f-70c33a1de895
+This is the official website for Symteco Nigerian Limited, built with Next.js, TypeScript, Tailwind CSS, and shadcn-ui components.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+- **Next.js** for server-side rendering and routing
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **shadcn-ui** for UI components
+- **React Query** for data fetching
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1d9d12aa-290c-40a7-8b6f-70c33a1de895) and start prompting.
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- npm or bun
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Clone the repository:
+```bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+cd symteco-nigerian-limited/frontend
 ```
 
-**Edit a file directly in GitHub**
+Install dependencies:
+```bash
+npm install
+# or
+bun install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Start the development server:
+```bash
+npm run dev
+# or
+bun run dev
+```
 
-**Use GitHub Codespaces**
+Visit [http://localhost:3000](http://localhost:3000) to view the site locally.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+This project is ready to deploy on [Vercel](https://vercel.com/):
 
-This project is built with:
+1. Push your code to GitHub.
+2. Import your repository into Vercel.
+3. Vercel will automatically detect Next.js and deploy your site.
 
-- Vite
+### Custom Domain
+You can add a custom domain in your Vercel dashboard after deployment.
+
+## Scripts
+
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run start` — Start production server
+- `npm run lint` — Run ESLint
+
+## Environment Variables
+
+For contact form functionality, set these variables in your Vercel dashboard or `.env.local`:
+
+- `MJ_APIKEY_PUBLIC`
+- `MJ_APIKEY_PRIVATE`
+- `MJ_SENDER_EMAIL`
+- `MJ_RECEIVER_EMAIL`
+
+## Technologies Used
+
+- Next.js
 - TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- shadcn-ui
+- React Query
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/1d9d12aa-290c-40a7-8b6f-70c33a1de895) and click on Share -> Publish.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
