@@ -1,3 +1,5 @@
+# robots.txt for Symteco Nigerian Limited
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +14,9 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://symteco-nigerian-limited.vercel.app/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1
