@@ -54,7 +54,7 @@ const Services = () => {
           </div>
         </section>
 
-        {/* Services Section */}
+        {/* Use the Services Section Component */}
         <ServicesSection />
 
         {/* Process Section */}
@@ -73,7 +73,6 @@ const Services = () => {
             </div>
             
             <div className="grid md:grid-cols-5 gap-6 relative">
-              {/* Process Steps */}
               {[
                 {
                   step: "01",
@@ -123,7 +122,6 @@ const Services = () => {
                     <p className="text-muted-foreground text-sm text-center leading-relaxed">{process.description}</p>
                   </div>
                   
-                  {/* Connecting Line */}
                   {index < 4 && (
                     <div className="hidden md:block absolute top-12 left-full w-6 h-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 transform translate-x-2 group-hover:from-primary group-hover:to-secondary transition-all duration-300"></div>
                   )}
