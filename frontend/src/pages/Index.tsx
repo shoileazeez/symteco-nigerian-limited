@@ -4,8 +4,7 @@ import HeroSection from "@/components/sections/HeroSection";
 import StatsSection from "@/components/sections/StatsSection";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 import { 
-  TestimonialsSection,
-  ContactSection 
+  TestimonialsSection, 
 } from "@/components/LazyComponents";
 import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
@@ -27,13 +26,6 @@ const Index = () => {
           </Suspense>
         </ErrorBoundary>
 
-        <ErrorBoundary>
-          <Suspense fallback={<Loading text="Loading contact form..." />}>
-            <ContactSection />
-          </Suspense>
-        </ErrorBoundary>
-
-        
       </main>
       <Footer />
     </div>
