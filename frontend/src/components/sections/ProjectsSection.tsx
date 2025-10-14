@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Calendar, MapPin } from "lucide-react";
+import Image from "next/image";
+import { memo } from "react";
 
-const ProjectsSection = () => {
+const ProjectsSection = memo(() => {
   type Project = {
     id: number;
     title: string;
@@ -18,70 +20,70 @@ const ProjectsSection = () => {
   const projects: Project[] = [
     {
       id: 1,
-      title: "5MVA 33/11KV Substation Installation",
+      title: "Substation Construction Project",
       category: "Substation Installation",
-      location: "Elizade University",
-      year: "2012",
-      image: "/services-electrical.jpg",
-      description: "Installation and commissioning of 5MVA 33/11KV substation and Ring Mains Unit with extension at Elizade University.",
-      tags: ["33KV Systems", "5MVA Substation", "Ring Mains Unit"],
+      location: "Abeokuta, Ogun State",
+      year: "2025",
+      image: "/project-abeokuta-substation-construction.jpg",
+      description: "Ground-up construction of electrical substation including foundation work, structural installation, and electrical equipment setup in Abeokuta with specialized crew and safety protocols.",
+      tags: ["Civil Construction", "Substation Building", "Foundation Work", "Electrical Infrastructure"],
       status: "Completed"
     },
     {
       id: 2,
-      title: "1X15MVA 33/11KV Injection Station",
-      category: "Injection Station",
-      location: "Victoria Island, Lagos",
-      year: "2015",
-      image: "/services-panels.jpg",
-      description: "Completion and commissioning of 1X15MVA 33/11KV injection station for enhanced power distribution.",
-      tags: ["15MVA", "Injection Station", "Power Distribution"],
+      title: "Power Transformer Installation",
+      category: "Transformer Installation", 
+      location: "Ikeja, Lagos State",
+      year: "2023",
+      image: "/project-ikeja-transformer-installation.jpg",
+      description: "Professional installation and commissioning of large industrial power transformer with protective housing, control systems, and safety equipment at industrial facility in Ikeja.",
+      tags: ["Power Transformer", "Industrial Installation", "Protective Housing", "Safety Systems"],
       status: "Completed"
     },
     {
       id: 3,
-      title: "LVDS to HVDS Network Conversion",
-      category: "Network Conversion",
-      location: "Agege, Lagos (PHCN PMU)",
-      year: "2010",
-      image: "/services-mechanical.jpg",
-      description: "Installation of over 400 units of 50KVA transformer on LVDS to HVDS distribution network conversion project.",
-      tags: ["50KVA Transformers", "Network Conversion", "PHCN Project"],
+      title: "High Voltage Line Maintenance",
+      category: "Transmission Line Work",
+      location: "Multiple Sites, Nigeria", 
+      year: "2024",
+      image: "/project-high-voltage-line-work.jpg",
+      description: "High-altitude maintenance and repair work on transmission lines including conductor replacement, insulator maintenance, and structural reinforcement by certified technicians.",
+      tags: ["High Voltage", "Line Maintenance", "Safety Work", "Conductor Replacement"],
       status: "Completed"
     },
     {
       id: 4,
-      title: "600KVA Industrial Stabilizer",
-      category: "Industrial Equipment",
-      location: "Vital Products, Ikeja",
-      year: "2007",
-      image: "/services-electrical.jpg",
-      description: "Installation and commissioning of 600KVA Low voltage stabilizer incorporated with Dimmerstat for industrial operations.",
-      tags: ["600KVA Stabilizer", "Industrial", "Low Voltage"],
+      title: "Distribution Pole Transformer Installation",
+      category: "Distribution Systems",
+      location: "Lagos State",
+      year: "2025", 
+      image: "/project-lagos-distribution-transformer.jpg",
+      description: "Installation of pole-mounted distribution transformer with proper grounding, protective equipment, and connection to distribution network for residential and commercial power supply.",
+      tags: ["Pole Mount", "Distribution Transformer", "Grounding", "Network Connection"],
       status: "Completed"
     },
     {
       id: 5,
-      title: "500KVA Substation Installation",
-      category: "Substation",
-      location: "Festac, Lagos",
-      year: "2009",
-      image: "/services-panels.jpg",
-      description: "Processing, construction and installation of 500KVA 11KV/415V substation for residential and commercial use.",
-      tags: ["500KVA", "11KV/415V", "Substation"],
+      title: "Industrial Electrical Technician Services",
+      category: "Technical Services",
+      location: "Industrial Facilities",
+      year: "2024",
+      image: "/project-technician-electrical-work.jpg", 
+      description: "Skilled electrical technician performing precision electrical work on industrial equipment including control panel maintenance, wiring, and system diagnostics in controlled environment.",
+      tags: ["Technical Services", "Control Panels", "Precision Work", "System Diagnostics"],
       status: "Completed"
     },
     {
       id: 6,
-      title: "Earthing System for Generation Plant",
-      category: "Earthing Systems",
-      location: "SPN Packaging, Ikeja",
-      year: "2009",
-      image: "/services-mechanical.jpg",
-      description: "Earthing of 5Nos 500KVA Generating Plant and general earthing system installation for industrial facility.",
-      tags: ["Earthing System", "500KVA Generators", "Industrial Safety"],
+      title: "Electrical Maintenance & Troubleshooting",
+      category: "Maintenance Services",
+      location: "Various Sites, Nigeria",
+      year: "2024",
+      image: "/project-electrical-maintenance.jpg",
+      description: "Comprehensive electrical maintenance services including equipment inspection, troubleshooting, repairs, and preventive maintenance to ensure optimal system performance and safety.",
+      tags: ["Preventive Maintenance", "Troubleshooting", "Equipment Inspection", "System Optimization"],
       status: "Completed"
-    }
+    },
   ];
 
   return (
@@ -106,10 +108,13 @@ const ProjectsSection = () => {
               >
                 {/* Project Image */}
                 <div className="relative h-64 overflow-hidden">
-                  <img
+                  <Image
                     src={project.image}
                     alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    priority={index < 3}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
@@ -207,6 +212,8 @@ const ProjectsSection = () => {
       </div>
     </section>
   );
-};
+});
+
+ProjectsSection.displayName = 'ProjectsSection';
 
 export default ProjectsSection;
