@@ -62,11 +62,11 @@ const Header = () => {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold">
-                <span className={isScrolled ? "text-primary" : "text-white md:text-primary"}>
+                <span className={isScrolled ? "text-primary" : "text-white md:text-primary "}>
                   SYMTECO 
                 </span>
-                <span className={isScrolled ? "text-secondary" : "text-secondary"}>
-                  NIGERIA LIMITED
+                <span className={isScrolled ? "text-secondary" : "text-secondary"}>  
+                            NIGERIA LIMITED
                 </span>
               </Link>
             </div>
