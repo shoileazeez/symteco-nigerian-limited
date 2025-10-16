@@ -75,7 +75,7 @@ const Header = () => {
                     <span className={`transition-colors duration-300 ${isScrolled ? "text-primary" : "text-white md:text-primary"}`}>
                       SYMTECO
                     </span>
-                    <span className="text-secondary"> NIGERIAN LIMITED</span>
+                    <span className="text-secondary"> NIGERIA LIMITED</span>
                   </div>
                 </div>
               </Link>
