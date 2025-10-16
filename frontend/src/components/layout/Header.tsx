@@ -63,10 +63,10 @@ const Header = () => {
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold">
                 <span className={isScrolled ? "text-primary" : "text-white md:text-primary"}>
-                  SYMTECO
+                  SYMTECO 
                 </span>
                 <span className={isScrolled ? "text-secondary" : "text-secondary"}>
-                  .ng
+                  NIGERIA LIMITED
                 </span>
               </Link>
             </div>
