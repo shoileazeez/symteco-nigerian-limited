@@ -4,7 +4,7 @@ import HeroSection from "@/components/sections/HeroSection";
 import StatsSection from "@/components/sections/StatsSection";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 import { 
-  TestimonialsSection, 
+  WhyChooseUsSection
 } from "@/components/LazyComponents";
 import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
@@ -21,8 +21,8 @@ const Index = () => {
         </ErrorBoundary>
 
         <ErrorBoundary>
-          <Suspense fallback={<Loading text="Loading testimonials..." />}>
-            <TestimonialsSection />
+          <Suspense fallback={<Loading text="Loading features..." />}>
+            <WhyChooseUsSection />
           </Suspense>
         </ErrorBoundary>
 

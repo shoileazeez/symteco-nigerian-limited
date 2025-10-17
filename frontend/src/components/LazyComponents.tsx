@@ -19,14 +19,6 @@ const ServicesSection = dynamic(
   }
 );
 
-const TestimonialsSection = dynamic(
-  () => import('@/components/sections/TestimonialsSection'),
-  {
-    loading: () => <Loading text="Loading testimonials..." />,
-    ssr: false // This can be client-side only
-  }
-);
-
 const ContactSection = dynamic(
   () => import('@/components/sections/ContactSection'),
   {
@@ -35,9 +27,26 @@ const ContactSection = dynamic(
   }
 );
 
+const WhyChooseUsSection = dynamic(
+  () => import('@/components/sections/WhyChooseUsSection'),
+  {
+    loading: () => <Loading text="Loading features..." />,
+    ssr: false // This can be client-side only
+  }
+);
+
+const ClientsSection = dynamic(
+  () => import('@/components/sections/ClientsSection'),
+  {
+    loading: () => <Loading text="Loading clients..." />,
+    ssr: true
+  }
+);
+
 export {
   ProjectsSection,
   ServicesSection,
-  TestimonialsSection,
-  ContactSection
+  WhyChooseUsSection,
+  ContactSection,
+  ClientsSection
 };
