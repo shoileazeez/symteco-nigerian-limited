@@ -66,18 +66,13 @@ const Header = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="group">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <span className="text-white font-bold text-lg">S</span>
-                  </div>
-                  <div className="text-2xl font-bold">
-                    <span className={`transition-colors duration-300 ${isScrolled ? "text-primary" : "text-white md:text-primary"}`}>
-                      SYMTECO
-                    </span>
-                    <span className="text-secondary"> NIGERIA LIMITED</span>
-                  </div>
-                </div>
+              <Link href="/" className="text-2xl font-bold">
+                <span className={isScrolled ? "text-primary" : "text-white md:text-primary "}>
+                  SYMTECO 
+                </span>
+                <span className={isScrolled ? "text-secondary" : "text-secondary"}>  
+                            NIGERIA LIMITED
+                </span>
               </Link>
             </div>
 
