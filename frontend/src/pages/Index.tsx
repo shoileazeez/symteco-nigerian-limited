@@ -2,7 +2,12 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import StatsSection from "@/components/sections/StatsSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
+import { 
+  TestimonialsSection, 
+} from "@/components/LazyComponents";
+import { Suspense } from "react";
+import Loading from "@/components/ui/loading";
 
 const Index = () => {
   return (
@@ -10,8 +15,17 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
-        <StatsSection />
-        <TestimonialsSection />
+        
+        <ErrorBoundary>
+          <StatsSection />
+        </ErrorBoundary>
+
+        <ErrorBoundary>
+          <Suspense fallback={<Loading text="Loading testimonials..." />}>
+            <TestimonialsSection />
+          </Suspense>
+        </ErrorBoundary>
+
       </main>
       <Footer />
     </div>
