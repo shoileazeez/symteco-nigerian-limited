@@ -30,6 +30,12 @@ function generateSiteMap() {
        <priority>0.9</priority>
      </url>
      <url>
+       <loc>${baseUrl}/clients</loc>
+       <lastmod>${new Date().toISOString()}</lastmod>
+       <changefreq>monthly</changefreq>
+       <priority>0.8</priority>
+     </url>
+     <url>
        <loc>${baseUrl}/contact</loc>
        <lastmod>${new Date().toISOString()}</lastmod>
        <changefreq>monthly</changefreq>

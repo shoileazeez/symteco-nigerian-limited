@@ -203,7 +203,7 @@ const Services = () => {
                         <div className="text-sm text-white/80">Projects</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-3xl font-bold">15+</div>
+                        <div className="text-3xl font-bold">12+</div>
                         <div className="text-sm text-white/80">Years</div>
                       </div>
                       <div className="text-center">
