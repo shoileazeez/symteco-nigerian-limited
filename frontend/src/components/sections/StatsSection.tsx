@@ -6,7 +6,7 @@ const StatsSection = () => {
 
   const stats = [
     { number: 400, label: "Transformers Installed", suffix: "+" },
-    { number: 13, label: "Years of Experience", suffix: "+" },
+    { number: 12, label: "Years of Experience", suffix: "+" },
     { number: 50, label: "Skilled Employees", suffix: "+" },
     { number: 98, label: "Client Satisfaction", suffix: "%" },
   ];

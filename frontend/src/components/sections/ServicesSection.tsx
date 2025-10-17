@@ -65,7 +65,7 @@ const ServicesSection = memo(() => {
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Comprehensive electrical and mechanical solutions delivered by certified engineers 
-            with over 15 years of proven experience across Nigeria.
+            with over 12 years of proven experience across Nigeria.
           </p>
         </div>
 
