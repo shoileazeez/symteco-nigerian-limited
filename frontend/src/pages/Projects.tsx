@@ -1,7 +1,7 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, ExternalLink, Users, Award, Zap, Settings, Building } from "lucide-react";
+import { Calendar, MapPin, ExternalLink, Users, Award, Zap, Settings, Building, Clock, DollarSign, Star } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import QuoteModal from "@/components/sections/QuoteModal";
@@ -9,17 +9,20 @@ import QuoteModal from "@/components/sections/QuoteModal";
 interface Project {
   id: string;
   title: string;
-  category: string;
   description: string;
-  images: string[];
+  image?: string;
+  images?: string[];
+  category: string;
   location: string;
-  completedDate: string;
-  client: string;
-  status: string;
-  tags: string[];
-  featured: boolean;
+  year?: string;
+  tags?: string[];
+  status?: string;
+  featured?: boolean;
+  client?: string;
+  duration?: string;
+  value?: string;
+  content?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 const Projects = () => {
@@ -30,11 +33,12 @@ const Projects = () => {
 
   const projectFilters = [
     "All Projects",
-    "Substation Construction",
-    "Transformer Installation", 
-    "Line Maintenance",
-    "Technical Services",
-    "Distribution Systems"
+    'Substation Installation',
+    'Transformer Installation',
+    'Transmission Line Work',
+    'Distribution Systems',
+    'Technical Services',
+    'Maintenance Services',
   ];
 
   useEffect(() => {
@@ -150,25 +154,33 @@ const Projects = () => {
                     {/* Project Image */}
                     <div className="relative h-64 overflow-hidden">
                       <Image
-                        src={project.images?.[0] || "/project-placeholder.svg"}
+                        src={project.image || project.images?.[0] || "/project-placeholder.svg"}
                         alt={project.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/project-placeholder.svg";
                         }}
+                        priority={false}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                      <div className="absolute top-4 right-4">
+                      <div className="absolute top-4 right-4 flex flex-col gap-2">
                         <span className="bg-white/90 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium">
                           {project.status}
                         </span>
+                        {project.featured && (
+                          <span className="bg-yellow-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <Star className="h-3 w-3" />
+                            Featured
+                          </span>
+                        )}
                       </div>
                       <div className="absolute bottom-4 left-4">
                         <div className="flex items-center space-x-2 text-white text-sm">
                           <Calendar className="h-4 w-4" />
-                          <span>{project.completedDate ? new Date(project.completedDate).getFullYear() : 'N/A'}</span>
+                          <span>{project.year || new Date(project.createdAt).getFullYear()}</span>
                         </div>
                       </div>
                     </div>
@@ -200,6 +212,18 @@ const Projects = () => {
                           <Users className="h-3 w-3" />
                           <span>{project.client || 'Confidential Client'}</span>
                         </div>
+                        {project.duration && (
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{project.duration}</span>
+                          </div>
+                        )}
+                        {project.value && (
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <DollarSign className="h-3 w-3" />
+                            <span>{project.value}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Project Highlights */}

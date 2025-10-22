@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Calendar, MapPin } from "lucide-react";
+import { ExternalLink, Calendar, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import { memo, useState, useEffect } from "react";
 
@@ -9,12 +9,17 @@ interface Project {
   title: string;
   category: string;
   location: string;
-  year: string;
+  year?: string;
   image?: string;
   images: string[];
   description: string;
   tags: string[];
   status: string;
+  featured?: boolean;
+  client?: string;
+  duration?: string;
+  value?: string;
+  content?: string;
 }
 
 const ProjectsSection = memo(() => {
@@ -119,7 +124,7 @@ const ProjectsSection = memo(() => {
                 {/* Project Image */}
                 <div className="relative h-64 overflow-hidden">
                   <Image
-                    src={project.images?.[0] || project.image || '/project-placeholder.svg'}
+                    src={project.image || project.images?.[0] || '/project-placeholder.svg'}
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -132,13 +137,19 @@ const ProjectsSection = memo(() => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                   {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <Badge
                       variant={project.status === "Completed" ? "default" : "secondary"}
                       className="bg-white/90 text-foreground"
                     >
                       {project.status}
                     </Badge>
+                    {project.featured && (
+                      <Badge className="bg-yellow-500 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        Featured
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Category Badge */}
@@ -153,7 +164,7 @@ const ProjectsSection = memo(() => {
                     <div className="flex items-center space-x-4 text-white text-sm">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{project.year}</span>
+                        <span>{project.year || 'Recent'}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />
@@ -172,6 +183,18 @@ const ProjectsSection = memo(() => {
                   <p className="text-muted-foreground leading-relaxed">
                     {project.description}
                   </p>
+
+                  {/* Project Info */}
+                  {(project.client || project.value) && (
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {project.client && (
+                        <div>Client: {project.client}</div>
+                      )}
+                      {project.value && (
+                        <div>Value: {project.value}</div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2">

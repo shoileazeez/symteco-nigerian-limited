@@ -88,6 +88,8 @@
     "@types/node-mailjet": "^4.0.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.0",
