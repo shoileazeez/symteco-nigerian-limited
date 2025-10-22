@@ -2,89 +2,99 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
+
+interface Project {
+  id: string;
+  title: string;
+  category: string;
+  location: string;
+  year: string;
+  image?: string;
+  images: string[];
+  description: string;
+  tags: string[];
+  status: string;
+}
 
 const ProjectsSection = memo(() => {
-  type Project = {
-    id: number;
-    title: string;
-    category: string;
-    location: string;
-    year: string;
-    image: string;
-    description: string;
-    tags: string[];
-    status: string;
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch('/api/projects?featured=true');
+      const data = await response.json();
+      
+      if (data.success) {
+        setProjects(data.projects);
+      } else {
+        setError('Failed to load projects');
+      }
+    } catch (error) {
+      setError('Failed to load projects');
+      console.error('Error fetching projects:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const projects: Project[] = [
-    {
-      id: 1,
-      title: "Substation Construction Project",
-      category: "Substation Installation",
-      location: "Abeokuta, Ogun State",
-      year: "2025",
-      image: "/project-abeokuta-substation-construction.jpg",
-      description: "Ground-up construction of electrical substation including foundation work, structural installation, and electrical equipment setup in Abeokuta with specialized crew and safety protocols.",
-      tags: ["Civil Construction", "Substation Building", "Foundation Work", "Electrical Infrastructure"],
-      status: "Completed"
-    },
-    {
-      id: 2,
-      title: "Power Transformer Installation",
-      category: "Transformer Installation", 
-      location: "Ikeja, Lagos State",
-      year: "2023",
-      image: "/project-ikeja-transformer-installation.jpg",
-      description: "Professional installation and commissioning of large industrial power transformer with protective housing, control systems, and safety equipment at industrial facility in Ikeja.",
-      tags: ["Power Transformer", "Industrial Installation", "Protective Housing", "Safety Systems"],
-      status: "Completed"
-    },
-    {
-      id: 3,
-      title: "High Voltage Line Maintenance",
-      category: "Transmission Line Work",
-      location: "Multiple Sites, Nigeria", 
-      year: "2024",
-      image: "/project-high-voltage-line-work.jpg",
-      description: "High-altitude maintenance and repair work on transmission lines including conductor replacement, insulator maintenance, and structural reinforcement by certified technicians.",
-      tags: ["High Voltage", "Line Maintenance", "Safety Work", "Conductor Replacement"],
-      status: "Completed"
-    },
-    {
-      id: 4,
-      title: "Distribution Pole Transformer Installation",
-      category: "Distribution Systems",
-      location: "Lagos State",
-      year: "2025", 
-      image: "/project-lagos-distribution-transformer.jpg",
-      description: "Installation of pole-mounted distribution transformer with proper grounding, protective equipment, and connection to distribution network for residential and commercial power supply.",
-      tags: ["Pole Mount", "Distribution Transformer", "Grounding", "Network Connection"],
-      status: "Completed"
-    },
-    {
-      id: 5,
-      title: "Industrial Electrical Technician Services",
-      category: "Technical Services",
-      location: "Industrial Facilities",
-      year: "2024",
-      image: "/project-technician-electrical-work.jpg", 
-      description: "Skilled electrical technician performing precision electrical work on industrial equipment including control panel maintenance, wiring, and system diagnostics in controlled environment.",
-      tags: ["Technical Services", "Control Panels", "Precision Work", "System Diagnostics"],
-      status: "Completed"
-    },
-    {
-      id: 6,
-      title: "Electrical Maintenance & Troubleshooting",
-      category: "Maintenance Services",
-      location: "Various Sites, Nigeria",
-      year: "2024",
-      image: "/project-electrical-maintenance.jpg",
-      description: "Comprehensive electrical maintenance services including equipment inspection, troubleshooting, repairs, and preventive maintenance to ensure optimal system performance and safety.",
-      tags: ["Preventive Maintenance", "Troubleshooting", "Equipment Inspection", "System Optimization"],
-      status: "Completed"
-    },
-  ];
+  if (loading) {
+    return (
+      <section id="projects" className="section-padding bg-background">
+        <div className="container-padding">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+              Featured <span className="text-gradient-primary">Projects</span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Showcasing our expertise through successful project implementations across 
+              Nigeria's industrial landscape.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="project-card animate-pulse">
+                <div className="h-64 bg-muted rounded-t-xl"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-6 bg-muted rounded w-3/4"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded"></div>
+                    <div className="h-4 bg-muted rounded w-5/6"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-muted rounded w-16"></div>
+                    <div className="h-6 bg-muted rounded w-20"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="projects" className="section-padding bg-background">
+        <div className="container-padding">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+              Featured <span className="text-gradient-primary">Projects</span>
+            </h2>
+            <p className="text-muted-foreground mb-8">{error}</p>
+            <Button onClick={fetchProjects}>Try Again</Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="projects" className="section-padding bg-background">
@@ -109,12 +119,15 @@ const ProjectsSection = memo(() => {
                 {/* Project Image */}
                 <div className="relative h-64 overflow-hidden">
                   <Image
-                    src={project.image}
+                    src={project.images?.[0] || project.image || '/project-placeholder.svg'}
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                     priority={index < 3}
+                    onError={(e) => {
+                      e.currentTarget.src = '/project-placeholder.svg';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
@@ -187,6 +200,12 @@ const ProjectsSection = memo(() => {
               </div>
             ))}
           </div>
+
+          {projects.length === 0 && (
+            <div className="text-center mt-12">
+              <p className="text-muted-foreground">No featured projects available at the moment.</p>
+            </div>
+          )}
         </div>
 
         {/* View All Projects CTA */}
