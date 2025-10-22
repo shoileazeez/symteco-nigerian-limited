@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,15 +11,32 @@ interface Props {
 }
 
 export default function AdminLayout({ children, title }: Props) {
-  const { data: session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
+  
+  // Only call useSession after component is mounted on client
+  const sessionResult = mounted ? useSession() : { data: null, status: 'loading' };
+  const { data: session, status } = sessionResult;
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && status === 'unauthenticated') {
       // Redirect to admin login if not authenticated
       router.push('/admin/login');
     }
-  }, [status, router]);
+  }, [mounted, status, router]);
+
+  // Don't render anything until mounted on client
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // While loading session, render a placeholder to avoid calling hooks during SSR
   if (status === 'loading') {

@@ -449,3 +449,18 @@ export default function AdminMessages() {
     </AdminLayout>
   );
 }
+
+// Ensure this page is server-side rendered and protected during build
+export async function getServerSideProps(context: any) {
+  const { getSession } = await import('next-auth/react');
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/admin/login',
+        permanent: false,
+      },
+    };
+  }
+  return { props: {} };
+}
