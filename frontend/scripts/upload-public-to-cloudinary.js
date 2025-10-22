@@ -45,15 +45,22 @@ async function uploadFile(localPath, publicId) {
     const files = fs.readdirSync(PUBLIC_DIR);
     const mapping = {};
 
+    console.log('Scanning public directory for project-* images...');
+    
     for (const file of files) {
       const full = path.join(PUBLIC_DIR, file);
       const stat = fs.statSync(full);
+      
       if (stat.isFile() && isImageFile(file)) {
-        console.log('Uploading', file);
-        const publicId = path.parse(file).name + '-' + Date.now();
-        const res = await uploadFile(full, publicId);
-        mapping['/' + file] = res.secure_url;
-        console.log('Uploaded:', file, '->', res.secure_url);
+        if (file.startsWith('project-')) {
+          console.log('Uploading', file);
+          const publicId = path.parse(file).name + '-' + Date.now();
+          const res = await uploadFile(full, publicId);
+          mapping['/' + file] = res.secure_url;
+          console.log('Uploaded:', file, '->', res.secure_url);
+        } else {
+          console.log('Skipping (not project-*):', file);
+        }
       }
     }
 
