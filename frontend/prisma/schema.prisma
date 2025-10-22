@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  image       String   // Main project image
+  images      String[] // Array of additional image URLs
+  category    String   // e.g., "Substation Installation", "Transformer Installation"
+  location    String   // e.g., "Abeokuta, Ogun State"
+  year        String   // Project completion year
+  tags        String[] // Array of project tags
+  status      String   @default("Completed") // Completed, Ongoing, Planned
+  featured    Boolean  @default(false)
+  
+  // Additional fields for detailed project info
+  client      String?
+  duration    String?  // Project duration
+  value       String?  // Project value/budget
+  content     String?  // Detailed project content for full project page
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}

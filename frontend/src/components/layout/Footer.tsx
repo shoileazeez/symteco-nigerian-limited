@@ -23,7 +23,7 @@ const Footer = () => {
                   </div>
                   <div className="text-2xl font-bold">
                     <span className="text-white">SYMTECO</span>
-                    <span className="text-secondary"> NIGERIAN LIMITED</span>
+                    <span className="text-secondary"> NIGERIA LIMITED</span>
                   </div>
                 </div>
                 <p className="text-primary-foreground/80 leading-relaxed text-sm">

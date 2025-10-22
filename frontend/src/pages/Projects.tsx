@@ -1,13 +1,32 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, MapPin, ExternalLink, Users, Award, Zap, Settings, Building } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import QuoteModal from "@/components/sections/QuoteModal";
 
+interface Project {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  images: string[];
+  location: string;
+  completedDate: string;
+  client: string;
+  status: string;
+  tags: string[];
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState("All Projects");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const projectFilters = [
     "All Projects",
@@ -18,80 +37,26 @@ const Projects = () => {
     "Distribution Systems"
   ];
 
-  const projects = [
-    {
-      id: 1,
-      title: "Industrial Substation Construction",
-      category: "Substation Construction",
-      description: "Complete construction and commissioning of 33/11kV substation for industrial complex.",
-      image: "/project-abeokuta-substation-construction.jpg",
-      location: "Lagos, Nigeria",
-      date: "2024",
-      client: "Industrial Manufacturing Ltd",
-      status: "Completed",
-      highlights: ["33/11kV Transformer", "Complete Protection System", "SCADA Integration"]
-    },
-    {
-      id: 2,
-      title: "Electrical Panel Fabrication & Installation",
-      category: "Technical Services", 
-      description: "Custom electrical panels designed and installed for commercial building complex.",
-      image: "/project-technician-electrical-work.jpg",
-      location: "Abuja, Nigeria",
-      date: "2024",
-      client: "Commercial Properties Inc",
-      status: "Completed",
-      highlights: ["Custom Design", "Quality Materials", "Professional Installation"]
-    },
-    {
-      id: 3,
-      title: "High Voltage Electrical Maintenance",
-      category: "Line Maintenance",
-      description: "Comprehensive maintenance and upgrades of electrical distribution systems.",
-      image: "/project-electrical-maintenance.jpg",
-      location: "Port Harcourt, Nigeria", 
-      date: "2023",
-      client: "Energy Distribution Company",
-      status: "Completed",
-      highlights: ["Preventive Maintenance", "System Upgrades", "Safety Compliance"]
-    },
-    {
-      id: 4,
-      title: "Transformer Installation Project",
-      category: "Transformer Installation",
-      description: "Installation of multiple transformers for power distribution upgrade.",
-      image: "/project-ikeja-transformer-installation.jpg",
-      location: "Kano, Nigeria",
-      date: "2023",
-      client: "Power Distribution Network",
-      status: "Completed", 
-      highlights: ["Multiple Units", "Grid Integration", "Quality Testing"]
-    },
-    {
-      id: 5,
-      title: "Industrial Cable Installation",
-      category: "Distribution Systems",
-      description: "Large-scale cable installation and distribution system setup.",
-      image: "/project-high-voltage-line-work.jpg",
-      location: "Kaduna, Nigeria",
-      date: "2023",
-      client: "Manufacturing Facility",
-      status: "Completed",
-      highlights: ["Underground Cables", "Distribution Panels", "Safety Systems"]
-    },
-    {
-      id: 6,
-      title: "Control Panel Manufacturing",
-      category: "Technical Services",
-      description: "Custom control panels manufactured for industrial automation systems.",
-      image: "/project-lagos-distribution-transformer.jpg",
-      location: "Lagos, Nigeria",
-      date: "2022",
-      client: "Automation Solutions Ltd",
-      status: "Completed",
-      highlights: ["Custom Controls", "Industrial Grade", "Remote Monitoring"]
-    }
-  ];
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/projects');
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setProjects(data.projects || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load projects');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const filteredProjects = activeFilter === "All Projects" 
     ? projects 
@@ -169,78 +134,95 @@ const Projects = () => {
         {/* Projects Grid */}
         <section className="section-padding">
           <div className="container-padding">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project) => (
-                <div key={project.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-gray-200">
-                  {/* Project Image */}
-                  <div className="relative h-64 overflow-hidden">
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-white/90 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium">
-                        {project.status}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-4 left-4">
-                      <div className="flex items-center space-x-2 text-white text-sm">
-                        <Calendar className="h-4 w-4" />
-                        <span>{project.date}</span>
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-16">
+                <p className="text-red-500 mb-4">Error loading projects: {error}</p>
+                <Button onClick={() => window.location.reload()}>Try Again</Button>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredProjects.map((project) => (
+                  <div key={project.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-gray-200">
+                    {/* Project Image */}
+                    <div className="relative h-64 overflow-hidden">
+                      <Image
+                        src={project.images?.[0] || "/placeholder.svg"}
+                        alt={project.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder.svg";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-white/90 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium">
+                          {project.status}
+                        </span>
                       </div>
+                      <div className="absolute bottom-4 left-4">
+                        <div className="flex items-center space-x-2 text-white text-sm">
+                          <Calendar className="h-4 w-4" />
+                          <span>{project.completedDate ? new Date(project.completedDate).getFullYear() : 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Project Content */}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">
+                          {project.category}
+                        </span>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                        {project.title}
+                      </h3>
+                      
+                      <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
+                        {project.description}
+                      </p>
+
+                      {/* Project Details */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          <span>{project.location || 'Nigeria'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                          <Users className="h-3 w-3" />
+                          <span>{project.client || 'Confidential Client'}</span>
+                        </div>
+                      </div>
+
+                      {/* Project Highlights */}
+                      {project.tags && project.tags.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-foreground">Key Highlights:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {project.tags.slice(0, 3).map((tag, idx) => (
+                              <span 
+                                key={idx} 
+                                className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* Project Content */}
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">
-                        {project.category}
-                      </span>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    
-                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      {project.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
-                      {project.description}
-                    </p>
-
-                    {/* Project Details */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span>{project.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <Users className="h-3 w-3" />
-                        <span>{project.client}</span>
-                      </div>
-                    </div>
-
-                    {/* Project Highlights */}
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-foreground">Key Highlights:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {project.highlights.map((highlight, idx) => (
-                          <span 
-                            key={idx} 
-                            className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md"
-                          >
-                            {highlight}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
