@@ -17,12 +17,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ImageUpload from '@/components/ui/image-upload';
 
 interface ProjectFormData {
   title: string;
   description: string;
-  image: string;
-  images: string[];
+  images: string[]; // Changed from separate image and images fields
   category: string;
   location: string;
   year: string;
@@ -55,12 +55,10 @@ export default function AddProject() {
   const [loading, setLoading] = useState(false);
   const [loadingProject, setLoadingProject] = useState(isEdit);
   const [tagInput, setTagInput] = useState('');
-  const [imageInput, setImageInput] = useState('');
 
   const [formData, setFormData] = useState<ProjectFormData>({
     title: '',
     description: '',
-    image: '',
     images: [],
     category: '',
     location: '',
@@ -109,9 +107,36 @@ export default function AddProject() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.title || !formData.description || !formData.category || !formData.location || !formData.year) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.images.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please upload at least one image',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Format data for API - main image is the first one, rest go in images array
+      const dataToSubmit = {
+        ...formData,
+        image: formData.images[0] || '', // Main image
+        images: formData.images, // All images including main
+      };
+
       const response = await fetch(
         isEdit ? `/api/projects/${id}` : '/api/projects',
         {
@@ -119,7 +144,7 @@ export default function AddProject() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(dataToSubmit),
         }
       );
 
@@ -163,23 +188,6 @@ export default function AddProject() {
     setFormData({
       ...formData,
       tags: formData.tags.filter(tag => tag !== tagToRemove),
-    });
-  };
-
-  const addImage = () => {
-    if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
-      setFormData({
-        ...formData,
-        images: [...formData.images, imageInput.trim()],
-      });
-      setImageInput('');
-    }
-  };
-
-  const removeImage = (imageToRemove: string) => {
-    setFormData({
-      ...formData,
-      images: formData.images.filter(img => img !== imageToRemove),
     });
   };
 
@@ -311,46 +319,13 @@ export default function AddProject() {
               </div>
 
               {/* Images */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="image">Main Image URL</Label>
-                  <Input
-                    id="image"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="/project-image.jpg"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Additional Images</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={imageInput}
-                      onChange={(e) => setImageInput(e.target.value)}
-                      placeholder="Add image URL"
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
-                    />
-                    <Button type="button" variant="outline" onClick={addImage}>
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.images.map((image, index) => (
-                      <Badge key={index} variant="secondary" className="px-3 py-1">
-                        {image}
-                        <button
-                          type="button"
-                          onClick={() => removeImage(image)}
-                          className="ml-2 hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <ImageUpload
+                label="Project Images"
+                value={formData.images}
+                onChange={(images) => setFormData({ ...formData, images })}
+                maxImages={5}
+                required={true}
+              />
 
               {/* Tags */}
               <div className="space-y-2">

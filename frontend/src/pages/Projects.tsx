@@ -150,13 +150,13 @@ const Projects = () => {
                     {/* Project Image */}
                     <div className="relative h-64 overflow-hidden">
                       <Image
-                        src={project.images?.[0] || "/placeholder.svg"}
+                        src={project.images?.[0] || "/project-placeholder.svg"}
                         alt={project.title}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = "/placeholder.svg";
+                          target.src = "/project-placeholder.svg";
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>

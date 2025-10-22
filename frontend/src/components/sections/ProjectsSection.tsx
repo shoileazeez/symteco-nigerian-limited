@@ -10,7 +10,8 @@ interface Project {
   category: string;
   location: string;
   year: string;
-  image: string;
+  image?: string;
+  images: string[];
   description: string;
   tags: string[];
   status: string;
@@ -118,14 +119,14 @@ const ProjectsSection = memo(() => {
                 {/* Project Image */}
                 <div className="relative h-64 overflow-hidden">
                   <Image
-                    src={project.image || '/placeholder.svg'}
+                    src={project.images?.[0] || project.image || '/project-placeholder.svg'}
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                     priority={index < 3}
                     onError={(e) => {
-                      e.currentTarget.src = '/placeholder.svg';
+                      e.currentTarget.src = '/project-placeholder.svg';
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
