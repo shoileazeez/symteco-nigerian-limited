@@ -175,15 +175,15 @@ export default function AdminProjects() {
     <AdminLayout title="Projects">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Project Portfolio</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Project Portfolio</h2>
             <p className="text-gray-600 mt-1">
               Create, edit, and manage your construction projects
             </p>
           </div>
           <Link href="/admin/projects/add">
-            <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300 flex items-center space-x-2">
+            <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300 flex items-center space-x-2 w-full sm:w-auto justify-center">
               <Plus className="h-4 w-4" />
               <span>Add Project</span>
             </Button>
@@ -191,7 +191,7 @@ export default function AdminProjects() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50 hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center text-blue-700">
@@ -255,18 +255,18 @@ export default function AdminProjects() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-6 sm:p-8">
             {projects.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FolderOpen className="h-10 w-10 text-primary" />
+              <div className="text-center py-12 sm:py-16">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <FolderOpen className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No projects found</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No projects found</h3>
+                <p className="text-gray-600 mb-4 text-sm sm:text-base">
                   Get started by adding your first construction project
                 </p>
                 <Link href="/admin/projects/add">
-                  <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300">
+                  <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300 w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Project
                   </Button>
@@ -274,255 +274,378 @@ export default function AdminProjects() {
               </div>
             ) : (
               <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 hover:bg-gray-100">
-                      <TableHead className="font-semibold text-gray-700">Project Title</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Category</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Location</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Year</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Featured</TableHead>
-                      <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projects.map((project) => (
-                      <TableRow 
-                        key={project.id}
-                        className={`hover:bg-gray-50 transition-colors ${project.featured ? 'bg-primary/5 border-l-4 border-l-primary' : ''}`}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            {project.title}
-                            {project.featured && <Star className="ml-2 w-4 h-4 text-primary fill-primary" />}
+                {/* Mobile Card View */}
+                <div className="block lg:hidden space-y-4">
+                  {projects.map((project) => (
+                    <Card key={project.id} className={`border border-gray-200 ${project.featured ? 'border-l-4 border-l-primary bg-primary/5' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 text-base flex items-center">
+                                {project.title}
+                                {project.featured && <Star className="ml-2 w-4 h-4 text-primary fill-primary" />}
+                              </h3>
+                              <p className="text-sm text-gray-600 mt-1">{project.location}</p>
+                            </div>
+                            <Badge 
+                              variant={project.status === 'Completed' ? 'default' : 'secondary'}
+                              className={project.status === 'Completed' ? 'bg-green-500 text-white text-xs' : 'bg-orange-100 text-orange-700 text-xs'}
+                            >
+                              {project.status === 'Completed' ? '✅' : ''} {project.status}
+                            </Badge>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                            {project.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-gray-600">{project.location}</TableCell>
-                        <TableCell className="text-gray-600">{project.year}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={project.status === 'Completed' ? 'default' : 'secondary'}
-                            className={project.status === 'Completed' ? 'bg-green-500 text-white' : 'bg-orange-100 text-orange-700'}
-                          >
-                            {project.status === 'Completed' ? '✅ Completed' : project.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleFeatured(project.id, project.featured)}
-                            className={project.featured 
-                              ? 'bg-primary text-white hover:bg-primary/90 border-primary' 
-                              : 'hover:bg-primary hover:text-white hover:border-primary transition-all duration-300'
-                            }
-                          >
-                            {project.featured ? (
-                              <>
-                                <Star className="h-4 w-4 mr-1 fill-current" />
-                                Featured
-                              </>
-                            ) : (
-                              <>
-                                <Star className="h-4 w-4 mr-1" />
-                                Feature
-                              </>
-                            )}
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center gap-2 justify-end">
-                            <Dialog open={viewDialog?.id === project.id} onOpenChange={(open) => !open && setViewDialog(null)}>
-                              <DialogTrigger asChild>
+                          
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-xs">
+                              🏗️ {project.category}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              📅 {project.year}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleFeatured(project.id, project.featured)}
+                              className={`text-xs ${project.featured 
+                                ? 'bg-primary text-white hover:bg-primary/90 border-primary' 
+                                : 'hover:bg-primary hover:text-white hover:border-primary transition-all duration-300'
+                              }`}
+                            >
+                              <Star className="h-3 w-3 mr-1" />
+                              {project.featured ? 'Featured' : 'Feature'}
+                            </Button>
+                            
+                            <div className="flex items-center gap-2">
+                              <Dialog open={viewDialog?.id === project.id} onOpenChange={(open) => !open && setViewDialog(null)}>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setViewDialog(project)}
+                                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-300"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                </DialogTrigger>
+                              </Dialog>
+                              <Link href={`/admin/projects/edit/${project.id}`}>
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={() => setViewDialog(project)}
-                                  className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-300"
+                                  className="hover:bg-green-50 hover:text-green-600 hover:border-green-300 transition-all duration-300"
                                 >
-                                  <Eye className="h-4 w-4" />
+                                  <Edit className="h-3 w-3" />
                                 </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle className="text-2xl font-bold flex items-center">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                                      <Eye className="h-5 w-5 text-white" />
-                                    </div>
-                                    Project Details
-                                  </DialogTitle>
-                                  <DialogDescription className="text-base text-gray-600">
-                                    Complete information about this project
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {viewDialog && (
-                                  <div className="space-y-6 mt-4">
-                                    {/* Project Header */}
-                                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                                      <h3 className="text-xl font-bold text-gray-900 mb-2">{viewDialog.title}</h3>
-                                      <div className="flex flex-wrap gap-3">
-                                        <Badge variant="outline" className="bg-white border-blue-300 text-blue-700">
-                                          📍 {viewDialog.location}
-                                        </Badge>
-                                        <Badge variant="outline" className="bg-white border-green-300 text-green-700">
-                                          🏗️ {viewDialog.category}
-                                        </Badge>
-                                        <Badge variant="outline" className="bg-white border-purple-300 text-purple-700">
-                                          📅 {viewDialog.year}
-                                        </Badge>
-                                        {viewDialog.featured && (
-                                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                                            ⭐ Featured
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Project Details Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      <div className="bg-gray-50 rounded-lg p-4">
-                                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                                            📊
-                                          </div>
-                                          Status
-                                        </h4>
-                                        <Badge 
-                                          variant={viewDialog.status === 'completed' ? 'default' : 'secondary'}
-                                          className={viewDialog.status === 'completed' ? 'bg-green-500' : ''}
-                                        >
-                                          {viewDialog.status === 'completed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                                          {viewDialog.status.charAt(0).toUpperCase() + viewDialog.status.slice(1)}
-                                        </Badge>
-                                      </div>
-
-                                      <div className="bg-gray-50 rounded-lg p-4">
-                                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                                            📅
-                                          </div>
-                                          Created
-                                        </h4>
-                                        <p className="text-gray-600">
-                                          {new Date(viewDialog.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                          })}
-                                        </p>
-                                      </div>
-
-                                      <div className="bg-gray-50 rounded-lg p-4">
-                                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
-                                            🆔
-                                          </div>
-                                          Project ID
-                                        </h4>
-                                        <p className="text-xs font-mono bg-white px-2 py-1 rounded border">
-                                          {viewDialog.id}
-                                        </p>
-                                      </div>
-
-                                      <div className="bg-gray-50 rounded-lg p-4">
-                                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                                          <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mr-2">
-                                            ⭐
-                                          </div>
-                                          Visibility
-                                        </h4>
-                                        <p className="text-gray-600">
-                                          {viewDialog.featured ? '🌟 Featured Project' : '📄 Regular Project'}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t">
-                                      <Link href={`/admin/projects/edit/${viewDialog.id}`}>
-                                        <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg transition-all duration-300">
-                                          <Edit className="h-4 w-4 mr-2" />
-                                          Edit Project
-                                        </Button>
-                                      </Link>
-                                      <Button 
-                                        variant="outline" 
-                                        onClick={() => setViewDialog(null)}
-                                        className="border-gray-300 hover:bg-gray-50"
-                                      >
-                                        Close
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-                            <Link href={`/admin/projects/edit/${project.id}`}>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="hover:bg-green-50 hover:text-green-600 hover:border-green-300 transition-all duration-300"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="max-w-lg">
-                                <AlertDialogHeader>
-                                  <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-100 to-red-200 rounded-full">
-                                    <AlertTriangle className="h-8 w-8 text-red-600" />
-                                  </div>
-                                  <AlertDialogTitle className="text-center text-xl font-bold text-gray-900">
-                                    Delete Project
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription className="text-center text-base text-gray-600">
-                                    Are you sure you want to delete <span className="font-semibold text-gray-900">"{project.title}"</span>?
-                                    <br />
-                                    <span className="text-red-600 font-medium">This action cannot be undone.</span>
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter className="flex gap-3 mt-6">
-                                  <AlertDialogCancel className="flex-1 border-gray-300 hover:bg-gray-50 transition-all duration-300">
-                                    Cancel
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => {
-                                      handleDelete(project.id);
-                                      setDeleteDialog(null);
-                                    }}
-                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                              </Link>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete Project
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="max-w-sm sm:max-w-lg mx-4">
+                                  <AlertDialogHeader>
+                                    <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-100 to-red-200 rounded-full">
+                                      <AlertTriangle className="h-8 w-8 text-red-600" />
+                                    </div>
+                                    <AlertDialogTitle className="text-center text-lg sm:text-xl font-bold text-gray-900">
+                                      Delete Project
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="text-center text-sm sm:text-base text-gray-600">
+                                      Are you sure you want to delete <span className="font-semibold text-gray-900">"{project.title}"</span>?
+                                      <br />
+                                      <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+                                    <AlertDialogCancel className="flex-1 border-gray-300 hover:bg-gray-50 transition-all duration-300 order-2 sm:order-1">
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => {
+                                        handleDelete(project.id);
+                                        setDeleteDialog(null);
+                                      }}
+                                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 order-1 sm:order-2"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
-                        </TableCell>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 hover:bg-gray-100">
+                        <TableHead className="font-semibold text-gray-700">Project Title</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Category</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Location</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Year</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Featured</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {projects.map((project) => (
+                        <TableRow 
+                          key={project.id}
+                          className={`hover:bg-gray-50 transition-colors ${project.featured ? 'bg-primary/5 border-l-4 border-l-primary' : ''}`}
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              {project.title}
+                              {project.featured && <Star className="ml-2 w-4 h-4 text-primary fill-primary" />}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                              {project.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-600">{project.location}</TableCell>
+                          <TableCell className="text-gray-600">{project.year}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={project.status === 'Completed' ? 'default' : 'secondary'}
+                              className={project.status === 'Completed' ? 'bg-green-500 text-white' : 'bg-orange-100 text-orange-700'}
+                            >
+                              {project.status === 'Completed' ? '✅ Completed' : project.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleFeatured(project.id, project.featured)}
+                              className={project.featured 
+                                ? 'bg-primary text-white hover:bg-primary/90 border-primary' 
+                                : 'hover:bg-primary hover:text-white hover:border-primary transition-all duration-300'
+                              }
+                            >
+                              {project.featured ? (
+                                <>
+                                  <Star className="h-4 w-4 mr-1 fill-current" />
+                                  Featured
+                                </>
+                              ) : (
+                                <>
+                                  <Star className="h-4 w-4 mr-1" />
+                                  Feature
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center gap-2 justify-end">
+                              <Dialog open={viewDialog?.id === project.id} onOpenChange={(open) => !open && setViewDialog(null)}>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setViewDialog(project)}
+                                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-300"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                              </Dialog>
+                              <Link href={`/admin/projects/edit/${project.id}`}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="hover:bg-green-50 hover:text-green-600 hover:border-green-300 transition-all duration-300"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="max-w-lg">
+                                  <AlertDialogHeader>
+                                    <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-100 to-red-200 rounded-full">
+                                      <AlertTriangle className="h-8 w-8 text-red-600" />
+                                    </div>
+                                    <AlertDialogTitle className="text-center text-xl font-bold text-gray-900">
+                                      Delete Project
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="text-center text-base text-gray-600">
+                                      Are you sure you want to delete <span className="font-semibold text-gray-900">"{project.title}"</span>?
+                                      <br />
+                                      <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="flex gap-3 mt-6">
+                                    <AlertDialogCancel className="flex-1 border-gray-300 hover:bg-gray-50 transition-all duration-300">
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => {
+                                        handleDelete(project.id);
+                                        setDeleteDialog(null);
+                                      }}
+                                      className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete Project
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Shared Project Details Dialog */}
+        <Dialog open={!!viewDialog} onOpenChange={(open) => !open && setViewDialog(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                </div>
+                Project Details
+              </DialogTitle>
+              <DialogDescription className="text-sm sm:text-base text-gray-600">
+                Complete information about this project
+              </DialogDescription>
+            </DialogHeader>
+            {viewDialog && (
+              <div className="space-y-4 sm:space-y-6 mt-4">
+                {/* Project Header */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-6 border border-blue-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{viewDialog.title}</h3>
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <Badge variant="outline" className="bg-white border-blue-300 text-blue-700 text-xs">
+                      📍 {viewDialog.location}
+                    </Badge>
+                    <Badge variant="outline" className="bg-white border-green-300 text-green-700 text-xs">
+                      🏗️ {viewDialog.category}
+                    </Badge>
+                    <Badge variant="outline" className="bg-white border-purple-300 text-purple-700 text-xs">
+                      📅 {viewDialog.year}
+                    </Badge>
+                    {viewDialog.featured && (
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs">
+                        ⭐ Featured
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Project Details Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center text-sm">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                        📊
+                      </div>
+                      Status
+                    </h4>
+                    <Badge 
+                      variant={viewDialog.status === 'completed' ? 'default' : 'secondary'}
+                      className={viewDialog.status === 'completed' ? 'bg-green-500 text-xs' : 'text-xs'}
+                    >
+                      {viewDialog.status === 'completed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                      {viewDialog.status.charAt(0).toUpperCase() + viewDialog.status.slice(1)}
+                    </Badge>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center text-sm">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                        📅
+                      </div>
+                      Created
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      {new Date(viewDialog.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center text-sm">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
+                        🆔
+                      </div>
+                      Project ID
+                    </h4>
+                    <p className="text-xs font-mono bg-white px-2 py-1 rounded border break-all">
+                      {viewDialog.id}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center text-sm">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-orange-100 rounded-full flex items-center justify-center mr-2">
+                        ⭐
+                      </div>
+                      Visibility
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      {viewDialog.featured ? '🌟 Featured Project' : '📄 Regular Project'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setViewDialog(null)}
+                    className="border-gray-300 hover:bg-gray-50 order-2 sm:order-1"
+                  >
+                    Close
+                  </Button>
+                  <Link href={`/admin/projects/edit/${viewDialog.id}`}>
+                    <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg transition-all duration-300 w-full sm:w-auto order-1 sm:order-2">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Project
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

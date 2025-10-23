@@ -119,7 +119,7 @@ export default function AdminLayout({ children, title }: Props) {
           ${collapsed ? 'w-20 lg:w-20' : 'w-64 lg:w-64'} bg-white/95 backdrop-blur-sm border-r border-primary/10 h-screen shadow-xl
         `}>
           <div className="p-6 md:p-4 border-b border-primary/10 flex items-center justify-between">
-            <Link href="/admin" className="flex items-center space-x-2 md:justify-center lg:justify-start">
+            <Link href="/admin/dashboard" className="flex items-center space-x-2 md:justify-center lg:justify-start">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
@@ -173,14 +173,14 @@ export default function AdminLayout({ children, title }: Props) {
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-white" />
                 </div>
-                <div className="flex-1 md:hidden lg:block">
-                  <div className="text-sm font-medium text-foreground truncate">
-                    {user?.name || 'Admin'}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {user?.email}
-                  </div>
+              <div className={`${collapsed ? 'hidden' : 'flex-1 md:hidden lg:block'}`}>
+                <div className="text-sm font-medium text-foreground truncate">
+                  {user?.name || 'Admin'}
                 </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {user?.email}
+                </div>
+              </div>
               </div>
               <Button 
                 onClick={handleLogout}
@@ -189,17 +189,17 @@ export default function AdminLayout({ children, title }: Props) {
                 className="w-full border-primary/20 hover:bg-gradient-to-r hover:from-primary hover:to-secondary hover:text-white transition-all duration-300"
               >
                 <LogOut className="h-4 w-4 md:mr-0 lg:mr-2" />
-                <span className="md:hidden lg:inline">Logout</span>
+                <span className={`${collapsed ? 'hidden' : 'md:hidden lg:inline'}`}>Logout</span>
               </Button>
             </div>
           </div>
         </aside>
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {title && (
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+              <div className="mb-6 lg:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                   {title}
                 </h1>
                 <div className="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-2"></div>
