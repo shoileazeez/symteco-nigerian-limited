@@ -49,3 +49,31 @@ model Admin {
 
   @@map("admins")
 }
+
+model Message {
+  id            String   @id @default(cuid())
+  source        String   @default("website") // e.g., website, zoho (legacy)
+  type          String   @default("contact")  // contact | quote
+  fromName      String
+  fromEmail     String
+  phone         String?
+  company       String?
+  service       String?
+  subject       String?
+  body          String
+  
+  // Quote-specific fields
+  projectLocation String?
+  timeline        String?
+  budget          String?
+  details         String?
+  
+  isRead         Boolean  @default(false)
+  hasAttachments Boolean  @default(false)
+  conversationId String? 
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("messages")
+  @@index([fromEmail])
+}

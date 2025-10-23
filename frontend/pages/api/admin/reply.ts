@@ -1,183 +1,223 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
-import mailjet from 'node-mailjet';
-
-// Ensure Mailjet credentials exist before creating a client
-const MJ_PUBLIC = process.env.MJ_APIKEY_PUBLIC;
-const MJ_PRIVATE = process.env.MJ_APIKEY_PRIVATE;
-const MJ_SENDER = process.env.MJ_SENDER_EMAIL;
-const MJ_RECEIVER = process.env.MJ_RECEIVER_EMAIL;
-
-let mailjetClient: any = null;
-if (MJ_PUBLIC && MJ_PRIVATE) {
-  mailjetClient = mailjet.apiConnect(MJ_PUBLIC, MJ_PRIVATE);
-} else {
-  console.warn('Mailjet API keys are missing: check MJ_APIKEY_PUBLIC and MJ_APIKEY_PRIVATE');
-}
+import { requireAuth, JWTPayload } from '../../../lib/jwt';
+import { sendZohoReply, getZohoMessage } from '../../../lib/zoho-mail';
 
 interface ReplyData {
-  to: string;
+  messageId: string; // Zoho message ID of the original message to reply to
   subject: string;
   message: string;
-  originalMessageId?: string;
-  replyType: 'quote' | 'contact';
+  isHtml?: boolean;
+  ccAddress?: string;
+  bccAddress?: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Require authentication
-  const session = await getSession({ req });
-  if (!session) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
+// Handler function that requires authentication
+async function replyHandler(req: NextApiRequest, res: NextApiResponse, user: JWTPayload) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
-    const { to, subject, message, originalMessageId, replyType }: ReplyData = req.body;
+    const { messageId, subject, message, isHtml = false, ccAddress, bccAddress }: ReplyData = req.body;
 
-    if (!to || !subject || !message) {
+    if (!messageId || !subject || !message) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: to, subject, message'
+        error: 'Missing required fields: messageId, subject, message'
       });
     }
 
-    // Format the email content
-    const htmlContent = formatReplyEmail(message, replyType, subject);
-    const textContent = stripHtml(message);
+    // Get the original message details from Zoho
+    const originalMessage = await getZohoMessage(messageId);
 
-    if (!mailjetClient) {
-      return res.status(500).json({ success: false, error: 'Mailjet configuration missing on server. Set MJ_APIKEY_PUBLIC and MJ_APIKEY_PRIVATE.' });
+    if (!originalMessage || !originalMessage.data) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Original message not found in Zoho Mail' 
+      });
     }
 
-    if (!MJ_SENDER || !MJ_RECEIVER) {
-      return res.status(500).json({ success: false, error: 'Mailjet sender/receiver emails not configured. Set MJ_SENDER_EMAIL and MJ_RECEIVER_EMAIL.' });
-    }
+    const msgData = originalMessage.data;
 
-    // Send the email
-    const response = await mailjetClient.post('send', { version: 'v3.1' }).request({
-      Messages: [
-        {
-          From: {
-            Email: MJ_SENDER,
-            Name: 'Symteco Nigerian Limited',
-          },
-          To: [
-            {
-              Email: to,
-              Name: to.split('@')[0], // Use email username as name fallback
-            },
-          ],
-          Subject: subject,
-          HTMLPart: htmlContent,
-          TextPart: textContent,
-          ReplyTo: {
-            Email: MJ_RECEIVER,
-            Name: 'Symteco Support',
-          },
-        },
-      ],
+    // Prepare reply content
+    const replyContent = isHtml ? message : formatReplyEmail(message, msgData);
+    
+    // Ensure subject has "Re: " prefix if not already present
+    const replySubject = subject.startsWith('Re: ') ? subject : `Re: ${subject}`;
+
+    // Send reply using Zoho Mail API
+    const replyResponse = await sendZohoReply(messageId, {
+      toAddress: msgData.fromAddress,
+      subject: replySubject,
+      content: replyContent,
+      ccAddress,
+      bccAddress
     });
 
-    console.log('Email sent successfully:', {
-      to,
-      subject,
-      status: response.response.status,
+    console.log('Reply sent successfully via Zoho Mail:', {
+      originalMessageId: messageId,
+      replyTo: msgData.fromAddress,
+      subject: replySubject,
+      status: replyResponse.status,
+      newMessageId: replyResponse.data?.messageId
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Reply sent successfully',
-      status: response.response.status,
+      message: 'Reply sent successfully via Zoho Mail',
+      originalMessage: {
+        id: msgData.messageId,
+        from: msgData.fromAddress,
+        subject: msgData.subject,
+        conversationId: msgData.conversationId
+      },
+      reply: {
+        id: replyResponse.data?.messageId,
+        to: msgData.fromAddress,
+        subject: replySubject,
+        sentAt: new Date().toISOString()
+      },
+      zohoResponse: replyResponse
     });
+
   } catch (error: any) {
-    console.error('Error sending reply:', error);
+    console.error('Error sending reply via Zoho Mail:', error);
+    
+    // Handle specific Zoho API errors
+    if (error.message.includes('401')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Zoho Mail authentication failed. Please check your API credentials.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      });
+    }
+
+    if (error.message.includes('404')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Original message not found. It may have been deleted or moved.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      error: 'Failed to send reply',
+      error: 'Failed to send reply via Zoho Mail',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 }
 
-function formatReplyEmail(message: string, replyType: 'quote' | 'contact', subject: string): string {
+function formatReplyEmail(message: string, originalMessage: any): string {
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
   });
 
-  const isQuote = replyType === 'quote';
+  // Determine if this was a quote request based on subject/content
+  const originalSubject = originalMessage.subject?.toLowerCase() || '';
+  const originalContent = originalMessage.summary?.toLowerCase() || '';
+  const isQuote = originalSubject.includes('quote') || 
+                  originalSubject.includes('pricing') || 
+                  originalSubject.includes('estimate') ||
+                  originalContent.includes('quote') ||
+                  originalContent.includes('pricing');
 
   return `
     <!DOCTYPE html>
     <html>
       <head>
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
-          .header { background: linear-gradient(135deg, #1e40af, #7c3aed); padding: 20px; color: white; border-radius: 8px 8px 0 0; }
-          .content { background: #f9fafb; padding: 20px; }
-          .message { background: white; padding: 20px; border-radius: 6px; margin: 15px 0; }
-          .footer { background: #374151; color: white; padding: 15px; text-align: center; border-radius: 0 0 8px 8px; }
-          .signature { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 14px; color: #6b7280; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; background: #f8fafc; }
+          .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin: 20px; }
+          .header { background: linear-gradient(135deg, #1e40af, #7c3aed); padding: 25px; color: white; text-align: center; }
+          .header h2 { margin: 0 0 10px 0; font-size: 24px; font-weight: 600; }
+          .header p { margin: 0; opacity: 0.9; font-size: 14px; }
+          .content { padding: 30px; }
+          .message-box { background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #1e40af; margin: 20px 0; }
+          .cta-box { background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; border-radius: 8px; margin: 25px 0; }
+          .cta-box h4 { margin: 0 0 15px 0; color: #92400e; font-size: 16px; }
+          .cta-box ol { margin: 5px 0; color: #92400e; }
+          .signature { margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+          .contact-info { background: #f1f5f9; padding: 15px; border-radius: 6px; margin-top: 15px; }
+          .contact-info p { margin: 5px 0; font-size: 14px; }
+          .footer { background: #374151; color: white; padding: 20px; text-align: center; }
+          .footer p { margin: 5px 0; }
+          .emoji { font-size: 18px; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2>${isQuote ? '💼 Quote Response' : '📧 Contact Response'} from Symteco</h2>
-          <p>Response sent on ${currentDate}</p>
-        </div>
-        
-        <div class="content">
-          <div class="message">
-            <h3>Dear Valued Client,</h3>
-            <p>Thank you for ${isQuote ? 'your quote request' : 'contacting us'}. We appreciate your interest in Symteco Nigerian Limited's services.</p>
+        <div class="container">
+          <div class="header">
+            <h2><span class="emoji">${isQuote ? '💼' : '📧'}</span> ${isQuote ? 'Quote Response' : 'Contact Response'} from Symteco</h2>
+            <p>Response sent on ${currentDate}</p>
+          </div>
+          
+          <div class="content">
+            <h3 style="color: #1e40af; margin-top: 0;">Dear Valued Client,</h3>
             
-            <div style="margin: 20px 0;">
-              ${message.split('\n').map(paragraph => `<p>${paragraph}</p>`).join('')}
+            <p>Thank you for ${isQuote ? 'your quote request' : 'contacting us'}. We appreciate your interest in Symteco Nigerian Limited's professional electrical and mechanical services.</p>
+            
+            <div class="message-box">
+              ${message.split('\n').map(paragraph => 
+                paragraph.trim() ? `<p style="margin: 10px 0;">${paragraph}</p>` : ''
+              ).join('')}
             </div>
 
             ${isQuote ? `
-              <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
-                <h4 style="margin: 0 0 10px 0; color: #92400e;">📋 Next Steps for Your Quote:</h4>
-                <ol style="margin: 0; color: #92400e;">
-                  <li>Our technical team will review your requirements</li>
-                  <li>We may contact you for additional specifications</li>
+              <div class="cta-box">
+                <h4><span class="emoji">📋</span> Next Steps for Your Quote Request:</h4>
+                <ol style="margin: 10px 0;">
+                  <li>Our technical team will review your project requirements carefully</li>
+                  <li>We may reach out for additional specifications if needed</li>
                   <li>You'll receive a detailed proposal within 2-3 business days</li>
-                  <li>Schedule a consultation to discuss the project details</li>
+                  <li>We can schedule a consultation to discuss project details</li>
+                  <li>Site visit can be arranged for accurate assessment</li>
                 </ol>
+                <p style="margin: 15px 0 5px 0; font-weight: 600; color: #92400e;">⚡ Priority Response: Quote requests receive expedited handling during business hours</p>
               </div>
-            ` : ''}
+            ` : `
+              <div class="cta-box">
+                <h4><span class="emoji">🤝</span> How We'll Assist You:</h4>
+                <ul style="margin: 10px 0; color: #92400e;">
+                  <li>Dedicated support for your inquiry</li>
+                  <li>Expert consultation on your electrical/mechanical needs</li>
+                  <li>Customized solutions for your specific requirements</li>
+                  <li>Professional project assessment and recommendations</li>
+                </ul>
+              </div>
+            `}
 
             <div class="signature">
               <p><strong>Best regards,</strong></p>
-              <p><strong>Symteco Nigerian Limited Team</strong></p>
-              <p>Professional Electrical & Mechanical Services</p>
-              <p>📧 Email: ${process.env.MJ_RECEIVER_EMAIL}</p>
-              <p>📞 Phone: 08058244486 / 08087865823</p>
-              <p>🌐 Website: symteconigerialimited.com</p>
+              <p style="color: #1e40af; font-weight: 600; font-size: 16px;">Symteco Nigerian Limited Team</p>
+              <p style="color: #6b7280; font-style: italic;">Professional Electrical & Mechanical Engineering Solutions</p>
+              
+              <div class="contact-info">
+                <p><strong><span class="emoji">📧</span> Email:</strong> ${process.env.ZOHO_FROM_EMAIL || 'info@symteco.com'}</p>
+                <p><strong><span class="emoji">📞</span> Phone:</strong> 08058244486 / 08087865823</p>
+                <p><strong><span class="emoji">🌐</span> Website:</strong> symteconigerialimited.com</p>
+                <p><strong><span class="emoji">📍</span> Address:</strong> Professional Services across Nigeria</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="footer">
-          <p><strong>Symteco Nigerian Limited</strong></p>
-          <p>Excellence in Electrical & Mechanical Engineering Solutions</p>
-          <p style="font-size: 12px; margin-top: 10px;">
-            This email was sent in response to your inquiry. If you have any questions, please don't hesitate to contact us.
-          </p>
+          <div class="footer">
+            <p><strong>Symteco Nigerian Limited</strong></p>
+            <p style="font-size: 14px; opacity: 0.9;">Excellence in Electrical & Mechanical Engineering Solutions</p>
+            <p style="font-size: 12px; margin-top: 15px; opacity: 0.8;">
+              This email was sent in response to your inquiry. For immediate assistance, please call our support line.
+            </p>
+          </div>
         </div>
       </body>
     </html>
   `;
 }
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .trim();
-}
+// Export with authentication middleware
+export default requireAuth(replyHandler);

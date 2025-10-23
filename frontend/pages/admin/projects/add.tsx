@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { getAuthHeader } from '../../../hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,7 +81,12 @@ export default function AddProject() {
 
   const fetchProject = async (projectId: string) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}`);
+      const response = await fetch(`/api/projects/${projectId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        }
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -143,6 +149,7 @@ export default function AddProject() {
           method: isEdit ? 'PUT' : 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeader()
           },
           body: JSON.stringify(dataToSubmit),
         }
@@ -423,16 +430,4 @@ export default function AddProject() {
   );
 }
 
-export async function getServerSideProps(context: any) {
-  const { getSession } = await import('next-auth/react');
-  const session = await getSession(context);
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/admin/login',
-        permanent: false,
-      },
-    };
-  }
-  return { props: {} };
-}
+// No server-side props needed with JWT auth

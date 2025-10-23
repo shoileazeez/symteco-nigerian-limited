@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import mailjet from 'node-mailjet';
 import { PrismaClient } from '@prisma/client';
 
+// Initialize Prisma client
 const prisma = new PrismaClient();
 
 const mailjetClient = mailjet.apiConnect(
@@ -174,40 +175,88 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Determine if this is a quote request or regular contact
-  // More robust detection: check for quote-specific fields or keywords
-  const isQuote = Boolean(
-    data.details || 
-    data.projectLocation || 
-    data.timeline || 
-    data.budget ||
-    (data.service && (
-      data.service.toLowerCase().includes('quote') ||
-      data.service.toLowerCase().includes('electrical') ||
-      data.service.toLowerCase().includes('mechanical') ||
-      data.service.toLowerCase().includes('installation') ||
-      data.service.toLowerCase().includes('maintenance')
-    )) ||
-    (data.message && (
-      data.message.toLowerCase().includes('quote') ||
-      data.message.toLowerCase().includes('project') ||
-      data.message.toLowerCase().includes('installation') ||
-      data.message.toLowerCase().includes('budget') ||
-      data.message.toLowerCase().includes('timeline')
-    ))
-  );
+  const isQuote = Boolean(data.details || data.projectLocation || data.timeline || data.budget);
   
   try {
-    console.log('Processing contact form submission (Mailjet only):', { 
-      name: data.name, 
-      email: data.email, 
-      type: isQuote ? 'quote' : 'contact'
-    });
-
     const emailSubject = isQuote 
       ? `🔥 URGENT: New Quote Request - ${data.service || 'General Inquiry'}`
       : `📧 New Contact Form - ${data.service || 'General Inquiry'}`;
 
-    // Send email via Mailjet only - no database storage
+    // Store the message in the admin system
+    const textContent = isQuote 
+      ? `NEW QUOTE REQUEST\n\nName: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || 'N/A'}\nService: ${data.service}\nLocation: ${data.projectLocation || 'N/A'}\nTimeline: ${data.timeline || 'N/A'}\nBudget: ${data.budget || 'N/A'}\n\nProject Details:\n${data.details || data.message}`
+      : `NEW CONTACT MESSAGE\n\nName: ${data.firstName ? `${data.firstName} ${data.lastName}` : data.name}\nEmail: ${data.email}\nPhone: ${data.phone || 'N/A'}\nService: ${data.service}\n\nMessage:\n${data.message}`;
+
+    // Generate unique email message ID for threading
+    const emailMessageId = `<${Date.now()}.${Math.random().toString(36).slice(2)}@symteco.com>`;
+
+    // Check if there's an existing conversation with this email
+    // Cast prisma to any to bypass missing generated model typings for 'conversation'
+    const db: any = prisma;
+    let conversation = await db.conversation.findFirst({
+      where: {
+        participantEmail: data.email,
+        status: 'open'
+      }
+    });
+
+    // Create new conversation if none exists
+    if (!conversation) {
+      conversation = await db.conversation.create({
+        data: {
+          subject: emailSubject,
+          participantEmail: data.email,
+          participantName: data.name,
+          category: isQuote ? 'quote' : 'contact',
+          priority: isQuote ? 'high' : 'normal',
+          messageCount: 1,
+          lastMessageAt: new Date()
+        }
+      });
+    } else {
+      // Update existing conversation
+      await db.conversation.update({
+        where: { id: conversation.id },
+        data: {
+          messageCount: { increment: 1 },
+          lastMessageAt: new Date()
+        }
+      });
+    }
+
+    // Create the message record
+    const message = await db.message.create({
+      data: {
+        conversationId: conversation.id,
+        type: isQuote ? 'quote' : 'contact',
+        subject: emailSubject,
+        textContent,
+        htmlContent: formatContactEmail(data, isQuote),
+        fromEmail: data.email,
+        fromName: data.name,
+        toEmail: process.env.MJ_RECEIVER_EMAIL!,
+        toName: 'Symteco Team',
+        phone: data.phone,
+        company: data.company,
+        service: data.service,
+        projectLocation: data.projectLocation,
+        timeline: data.timeline,
+        budget: data.budget,
+        emailMessageId,
+        read: false,
+        replied: false
+      }
+    });
+
+    console.log('Stored contact form submission in database:', { 
+      messageId: message.id,
+      conversationId: conversation.id,
+      from: message.fromEmail, 
+      subject: message.subject, 
+      type: message.type
+    });
+
+    // Send email via Mailjet
     await mailjetClient.post('send', { version: 'v3.1' }).request({
       Messages: [
         {
@@ -223,67 +272,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ],
           Subject: emailSubject,
           HTMLPart: formatContactEmail(data, isQuote),
-          TextPart: isQuote 
-            ? `NEW QUOTE REQUEST\n\nName: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || 'N/A'}\nService: ${data.service}\nLocation: ${data.projectLocation || 'N/A'}\nTimeline: ${data.timeline || 'N/A'}\nBudget: ${data.budget || 'N/A'}\n\nProject Details:\n${data.details || data.message}`
-            : `NEW CONTACT MESSAGE\n\nName: ${data.firstName ? `${data.firstName} ${data.lastName}` : data.name}\nEmail: ${data.email}\nPhone: ${data.phone || 'N/A'}\nService: ${data.service}\n\nMessage:\n${data.message}`
+          TextPart: textContent,
+          CustomID: `msg-${message.id}`,
+          CustomCampaign: `contact-${conversation.id}`
         },
       ],
     });
-
-    console.log('Email sent successfully via Mailjet');
-
-    // Save message to database with all fields
-    try {
-      const messageData = {
-        source: 'website',
-        type: isQuote ? 'quote' : 'contact',
-        fromName: data.name,
-        fromEmail: data.email,
-        subject: isQuote ? `Quote: ${data.service || 'Inquiry'}` : `Contact: ${data.service || 'Inquiry'}`,
-        body: (isQuote ? (data.details || data.message) : data.message),
-        
-        // Additional contact details
-        phone: data.phone || null,
-        company: data.company || null,
-        service: data.service || null,
-        
-        // Quote-specific fields
-        projectLocation: data.projectLocation || null,
-        timeline: data.timeline || null,
-        budget: data.budget || null,
-        details: data.details || null,
-        
-        isRead: false,
-        hasAttachments: false,
-      };
-
-      console.log('Saving message with data:', {
-        type: messageData.type,
-        isQuote,
-        hasProjectLocation: !!data.projectLocation,
-        hasTimeline: !!data.timeline,
-        hasBudget: !!data.budget,
-        hasDetails: !!data.details
-      });
-
-      await prisma.message.create({
-        data: messageData
-      });
-
-      console.log('Successfully saved contact message to database with all details');
-    } catch (dbErr) {
-      console.error('Failed to save message to DB:', dbErr);
-      // Continue — we still consider the request successful if email was sent
-    }
 
     res.status(200).json({ 
       success: true, 
       message: isQuote 
         ? 'Quote request sent successfully! We\'ll respond within 2 hours during business hours.'
-        : 'Message sent successfully! Thank you for contacting us.'
+        : 'Message sent successfully! Thank you for contacting us.',
+      messageId: message.id,
+      conversationId: conversation.id
     });
   } catch (error: any) {
-    console.error('Email sending error:', error);
+    console.error('Contact form processing error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Failed to send message. Please try again or contact us directly.',

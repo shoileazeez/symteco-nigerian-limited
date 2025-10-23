@@ -3,8 +3,14 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
+  const isDevelopment = process.env.NODE_ENV === 'development' || hostname.includes('github.dev') || hostname.includes('localhost')
   
-  // Handle admin subdomain
+  // In development/Codespaces, allow direct access to /admin routes
+  if (isDevelopment) {
+    return NextResponse.next()
+  }
+  
+  // Production: Handle admin subdomain
   if (hostname.startsWith('admin.')) {
     // Check if it's already an admin route
     if (!request.nextUrl.pathname.startsWith('/admin')) {
@@ -13,7 +19,7 @@ export function middleware(request: NextRequest) {
     }
   }
   
-  // Handle main domain - prevent access to admin routes
+  // Production: Handle main domain - prevent access to admin routes unless on admin subdomain
   if (!hostname.startsWith('admin.') && request.nextUrl.pathname.startsWith('/admin')) {
     return NextResponse.redirect(new URL('/', request.url))
   }

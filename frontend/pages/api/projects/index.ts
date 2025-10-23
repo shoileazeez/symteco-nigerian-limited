@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
+import { verifyToken, JWTPayload } from '../../../lib/jwt';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req });
+  const user = verifyToken(req, res);
 
   // For GET requests (public), no authentication required
   if (req.method === 'GET') {
@@ -24,8 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // For other operations, require authentication
-  if (!session) {
+    // For POST/PUT/DELETE requests, require authentication
+  if (!user) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 

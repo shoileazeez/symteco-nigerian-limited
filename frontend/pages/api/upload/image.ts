@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
+import { requireAuth, JWTPayload } from '../../../lib/jwt';
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import { promisify } from 'util';
@@ -36,13 +36,8 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Check authentication
-  const session = await getSession({ req });
-  if (!session) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
+// Handler function that requires authentication
+async function imageUploadHandler(req: NextApiRequest, res: NextApiResponse, user: JWTPayload) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
@@ -110,3 +105,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+
+// Export with authentication middleware
+export default requireAuth(imageUploadHandler);
