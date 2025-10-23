@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 type MJWebhookEvent = Record<string, any>;
 
 // In-memory store for parsed incoming messages. In production, swap this for a DB.
-let messageStore: Array<{
+const messageStore: Array<{
   id: string;
   type: 'quote' | 'contact';
   from: string;
@@ -81,7 +81,9 @@ async function handleIncomingEmail(evt: MJWebhookEvent) {
   messageStore.push(message);
 
   // Keep only the last 1000 messages
-  if (messageStore.length > 1000) messageStore = messageStore.slice(-1000);
+  if (messageStore.length > 1000) {
+    messageStore.splice(0, messageStore.length - 1000);
+  }
 
   console.log('Stored incoming email:', { from, subject, type: message.type, id: message.id });
 }

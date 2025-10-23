@@ -1,90 +1,184 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
-import { messageStore as webhookStore } from '../webhooks/mailjet';
+import { requireAuth, JWTPayload } from '../../../lib/jwt';
+import { PrismaClient } from '@prisma/client';
 
-// Helper to get messages with fallback to test data
-function getAllMessages() {
-  // Prefer the webhook in-memory store
-  if (webhookStore && Array.isArray(webhookStore) && webhookStore.length > 0) {
-    return webhookStore;
-  }
+const prisma = new PrismaClient();
 
-  // Fallback to global test messages (created by /api/test/generate-messages)
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  if ((global as any).testMessages && Array.isArray((global as any).testMessages)) {
-    // Make a shallow copy so updates don't mutate the original test data unexpectedly
-    return [...(global as any).testMessages];
-  }
-
-  return [];
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Require authentication for this endpoint
-  const session = await getSession({ req });
-  if (!session) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
+// Handler function that requires authentication
+async function messagesHandler(req: NextApiRequest, res: NextApiResponse, user: JWTPayload) {
   switch (req.method) {
     case 'GET':
       try {
-        const { type, read } = req.query;
-        const allMessages = getAllMessages();
+        const { type, read, search } = req.query;
 
-        let filtered = [...allMessages];
+        // Build Prisma query
+        const where: any = {};
 
-        // Filter by type if specified
-        if (type && (type === 'quote' || type === 'contact')) {
-          filtered = filtered.filter((msg: any) => msg.type === type);
+        if (type === 'quote' || type === 'contact') {
+          where.type = type;
         }
 
-        // Filter by read status if specified
         if (read !== undefined) {
-          const isRead = read === 'true';
-          filtered = filtered.filter((msg: any) => msg.read === isRead);
+          where.isRead = read === 'true';
         }
 
-        // Sort by received date (newest first) when available
-        filtered.sort((a: any, b: any) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime());
+        if (search) {
+          where.OR = [
+            { fromName: { contains: String(search), mode: 'insensitive' } },
+            { fromEmail: { contains: String(search), mode: 'insensitive' } },
+            { subject: { contains: String(search), mode: 'insensitive' } },
+            { body: { contains: String(search), mode: 'insensitive' } },
+          ];
+        }
+
+        const messages = await (prisma as any).message.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: 200,
+        });
+
+        const totalMessages = await (prisma as any).message.count({ where });
+
+        const stats = {
+          total: await (prisma as any).message.count(),
+          unread: await (prisma as any).message.count({ where: { isRead: false } }),
+          quotes: await (prisma as any).message.count({ where: { type: 'quote' } }),
+          contacts: await (prisma as any).message.count({ where: { type: 'contact' } }),
+        };
+
+        const transformedMessages = messages.map((m: any) => ({
+          id: m.id,
+          type: m.type,
+          subject: m.subject,
+          from: m.fromEmail,
+          fromName: m.fromName,
+          fromEmail: m.fromEmail,
+          to: process.env.MJ_RECEIVER_EMAIL || null,
+          summary: m.body.substring(0, 300),
+          textContent: m.body,
+          body: m.body,
+          receivedAt: m.createdAt.toISOString(),
+          read: m.isRead,
+          starred: false,
+          hasAttachments: m.hasAttachments,
+          conversationId: m.conversationId || m.id,
+          
+          // Additional fields from database
+          phone: m.phone,
+          company: m.company,
+          service: m.service,
+          projectLocation: m.projectLocation,
+          timeline: m.timeline,
+          budget: m.budget,
+          details: m.details,
+        }));
 
         return res.status(200).json({
           success: true,
-          messages: filtered,
-          stats: {
-            total: allMessages.length,
-            unread: allMessages.filter((msg: any) => !msg.read).length,
-            quotes: allMessages.filter((msg: any) => msg.type === 'quote').length,
-            contacts: allMessages.filter((msg: any) => msg.type === 'contact').length,
-          }
+          messages: transformedMessages,
+          stats,
+          folder: 'inbox',
+          totalMessages,
+          filteredMessages: transformedMessages.length
         });
-      } catch (error) {
+
+      } catch (error: any) {
         console.error('Error fetching messages:', error);
-        return res.status(500).json({ success: false, error: 'Failed to fetch messages' });
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to fetch messages',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
       }
 
     case 'PUT':
       try {
-        const { messageId, read, replied } = req.body;
+        const { messageId, read, starred } = req.body;
 
-        const allMessages = getAllMessages();
-        const idx = allMessages.findIndex((m: any) => m.id === messageId);
-        if (idx === -1) {
-          return res.status(404).json({ success: false, error: 'Message not found' });
+        if (!messageId) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Message ID is required' 
+          });
         }
 
-        if (read !== undefined) allMessages[idx].read = read;
-        if (replied !== undefined) allMessages[idx].replied = replied;
+        const updates: any = {};
+        if (read !== undefined) updates.isRead = Boolean(read);
 
-        return res.status(200).json({ success: true, message: allMessages[idx] });
-      } catch (error) {
+        // Apply update in DB
+        await (prisma as any).message.update({
+          where: { id: messageId },
+          data: updates
+        });
+
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Message updated successfully',
+          messageId,
+          updates
+        });
+
+      } catch (error: any) {
         console.error('Error updating message:', error);
-        return res.status(500).json({ success: false, error: 'Failed to update message' });
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to update message',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
+
+    case 'DELETE':
+      try {
+        const { messageId, messageIds } = req.body;
+
+        if (!messageId && (!messageIds || !Array.isArray(messageIds))) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Message ID or array of message IDs is required' 
+          });
+        }
+
+        let deletedCount = 0;
+
+        if (messageId) {
+          // Delete single message
+          await (prisma as any).message.delete({
+            where: { id: messageId }
+          });
+          deletedCount = 1;
+        } else if (messageIds) {
+          // Delete multiple messages
+          const result = await (prisma as any).message.deleteMany({
+            where: { 
+              id: { in: messageIds }
+            }
+          });
+          deletedCount = result.count;
+        }
+
+        return res.status(200).json({ 
+          success: true, 
+          message: `Successfully deleted ${deletedCount} message(s)`,
+          deletedCount
+        });
+
+      } catch (error: any) {
+        console.error('Error deleting message(s):', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to delete message(s)',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
       }
 
     default:
-      res.setHeader('Allow', ['GET', 'PUT']);
-      return res.status(405).json({ success: false, error: `Method ${req.method} not allowed` });
+      res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
+      return res.status(405).json({ 
+        success: false, 
+        error: `Method ${req.method} not allowed` 
+      });
   }
 }
+
+// Export with authentication middleware
+export default requireAuth(messagesHandler);

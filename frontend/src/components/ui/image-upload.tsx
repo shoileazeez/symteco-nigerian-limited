@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthHeader } from '../../../hooks/use-auth';
 import Image from 'next/image';
 
 interface ImageUploadProps {
@@ -34,6 +35,9 @@ export default function ImageUpload({
     try {
       const response = await fetch('/api/upload/image', {
         method: 'POST',
+        headers: {
+          ...getAuthHeader()
+        },
         body: formData,
       });
 

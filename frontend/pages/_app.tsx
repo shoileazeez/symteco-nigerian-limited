@@ -4,6 +4,7 @@ import { Toaster } from "../src/components/ui/toaster";
 import { Toaster as Sonner } from "../src/components/ui/sonner";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "../hooks/use-auth";
 import MetaTags from '../src/components/SEO/MetaTags';
 import StructuredData from '../src/components/SEO/StructuredData';
 
@@ -15,19 +16,20 @@ const queryClient = new QueryClient({
     },
   },
 });
-
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <MetaTags />
       <StructuredData />
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Component {...pageProps} />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Component {...pageProps} />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </AuthProvider>
     </>
   )
 }

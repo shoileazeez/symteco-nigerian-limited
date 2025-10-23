@@ -10,11 +10,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -23,20 +19,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Mail, MessageSquare, Reply, Eye, Clock, CheckCircle } from 'lucide-react';
+import { Mail, MessageSquare, Reply, Eye, Clock, CheckCircle, RefreshCw, User, Building, FileText, AlertCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthHeader } from '../../../hooks/use-auth';
 
 interface Message {
   id: string;
   type: 'quote' | 'contact';
   from: string;
+  fromName: string;
+  fromEmail: string;
+  phone?: string;
+  company?: string;
+  service?: string;
   to: string;
   subject: string;
-  textContent: string;
-  htmlContent: string;
+  textContent?: string;
+  summary?: string;
+  body?: string;
   receivedAt: string;
   read: boolean;
-  replied: boolean;
+  hasAttachments?: boolean;
+  conversationId?: string;
+  
+  // Quote-specific fields
+  projectLocation?: string;
+  timeline?: string;
+  budget?: string;
+  details?: string;
 }
 
 interface MessageStats {
@@ -50,23 +60,25 @@ export default function AdminMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [stats, setStats] = useState<MessageStats>({ total: 0, unread: 0, quotes: 0, contacts: 0 });
   const [loading, setLoading] = useState(true);
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [replyDialog, setReplyDialog] = useState<Message | null>(null);
-  const [replySubject, setReplySubject] = useState('');
-  const [replyMessage, setReplyMessage] = useState('');
-  const [sendingReply, setSendingReply] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [messageDetails, setMessageDetails] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchMessages();
   }, []);
 
-  const fetchMessages = async (type?: string) => {
+  const fetchMessages = async () => {
     try {
       setLoading(true);
-      const url = type ? `/api/admin/messages?type=${type}` : '/api/admin/messages';
-      const response = await fetch(url);
+      const response = await fetch('/api/admin/messages', {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -90,103 +102,200 @@ export default function AdminMessages() {
     }
   };
 
-  const markAsRead = async (messageId: string) => {
+    const markAsRead = async (messageId: string) => {
     try {
-      const response = await fetch('/api/admin/messages', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messageId, read: true }),
+      const response = await fetch(`/api/admin/messages/${messageId}/read`, {
+        method: 'PATCH',
+        headers: getAuthHeader()
       });
-
+      
       if (response.ok) {
         setMessages(messages.map(msg => 
           msg.id === messageId ? { ...msg, read: true } : msg
         ));
-        setStats(prev => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+        setStats(prev => ({ ...prev, unread: prev.unread - 1 }));
       }
     } catch (error) {
       console.error('Error marking message as read:', error);
     }
   };
 
-  const openReplyDialog = (message: Message) => {
-    setReplyDialog(message);
-    setReplySubject(`Re: ${message.subject}`);
-    setReplyMessage('');
-    
-    // Mark as read when opening reply
-    if (!message.read) {
-      markAsRead(message.id);
-    }
-  };
-
-  const sendReply = async () => {
-    if (!replyDialog || !replySubject.trim() || !replyMessage.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Subject and message are required',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setSendingReply(true);
+  const deleteMessage = async (messageId: string) => {
     try {
-      const response = await fetch('/api/admin/reply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: replyDialog.from,
-          subject: replySubject,
-          message: replyMessage,
-          originalMessageId: replyDialog.id,
-          replyType: replyDialog.type,
-        }),
+      const response = await fetch('/api/admin/messages', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        },
+        body: JSON.stringify({ messageId })
       });
 
-      const data = await response.json();
+      if (response.ok) {
+        const deletedMessage = messages.find(msg => msg.id === messageId);
+        setMessages(messages.filter(msg => msg.id !== messageId));
+        
+        // Update stats
+        setStats(prev => ({
+          total: prev.total - 1,
+          unread: deletedMessage && !deletedMessage.read ? prev.unread - 1 : prev.unread,
+          quotes: deletedMessage?.type === 'quote' ? prev.quotes - 1 : prev.quotes,
+          contacts: deletedMessage?.type === 'contact' ? prev.contacts - 1 : prev.contacts,
+        }));
 
-      if (data.success) {
-        // Mark as replied
-        const response2 = await fetch('/api/admin/messages', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messageId: replyDialog.id, replied: true }),
-        });
-
-        if (response2.ok) {
-          setMessages(messages.map(msg => 
-            msg.id === replyDialog.id ? { ...msg, replied: true } : msg
-          ));
+        // Close dialog if this message was open
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage(null);
+          setMessageDetails(null);
         }
 
         toast({
-          title: 'Success',
-          description: 'Reply sent successfully',
+          title: "Success",
+          description: "Message deleted successfully",
         });
-        setReplyDialog(null);
-        setReplySubject('');
-        setReplyMessage('');
       } else {
-        toast({
-          title: 'Error',
-          description: data.error || 'Failed to send reply',
-          variant: 'destructive',
-        });
+        throw new Error('Failed to delete message');
       }
     } catch (error) {
+      console.error('Error deleting message:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to send reply',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
       });
-    } finally {
-      setSendingReply(false);
     }
   };
 
-  const viewMessage = (message: Message) => {
+  const confirmDeleteMessage = async (message: Message) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this ${message.type} from ${message.fromName}?\n\nThis action cannot be undone.`
+    );
+    
+    if (confirmed) {
+      await deleteMessage(message.id);
+    }
+  };
+
+  const parseMessageContent = (message: any) => {
+    // Now we can get structured data directly from the database fields
+    const parsed = {
+      name: message.fromName || '',
+      email: message.fromEmail || '',
+      phone: message.phone || '',
+      company: message.company || '',
+      service: message.service || '',
+      projectLocation: message.projectLocation || '',
+      timeline: message.timeline || '',
+      budget: message.budget || '',
+      fullMessage: message.body || message.textContent || message.summary || '',
+      details: message.details || ''
+    };
+
+    // If database fields are empty, try to parse from message content as fallback
+    if (!parsed.phone && !parsed.company && !parsed.service) {
+      const content = parsed.fullMessage;
+      
+      const phoneMatch = content.match(/Phone[:\s]*([^\n\r]+)/i);
+      if (phoneMatch) parsed.phone = phoneMatch[1].trim();
+
+      const companyMatch = content.match(/Company[:\s]*([^\n\r]+)/i);
+      if (companyMatch) parsed.company = companyMatch[1].trim();
+
+      const serviceMatch = content.match(/Service[:\s]*([^\n\r]+)/i);
+      if (serviceMatch) parsed.service = serviceMatch[1].trim();
+
+      const locationMatch = content.match(/(?:Project\s*)?Location[:\s]*([^\n\r]+)/i);
+      if (locationMatch) parsed.projectLocation = locationMatch[1].trim();
+
+      const timelineMatch = content.match(/Timeline[:\s]*([^\n\r]+)/i);
+      if (timelineMatch) parsed.timeline = timelineMatch[1].trim();
+
+      const budgetMatch = content.match(/Budget[:\s]*([^\n\r]+)/i);
+      if (budgetMatch) parsed.budget = budgetMatch[1].trim();
+    }
+
+    return parsed;
+  };
+
+  const generateGmailReplyTemplate = (messageData: any) => {
+    const isQuote = messageData.type === 'quote';
+    const clientName = messageData.name || 'Valued Client';
+    
+    const subject = isQuote 
+      ? `Quote Response: ${messageData.service || 'Your Project Request'} - Symteco Nigerian Limited`
+      : `Re: ${messageData.subject || 'Your Inquiry'} - Symteco Nigerian Limited`;
+
+    const body = `Dear ${clientName},
+
+Thank you for ${isQuote ? 'your quote request' : 'contacting'} Symteco Nigerian Limited. We appreciate your interest in our professional electrical and mechanical engineering services.
+
+${isQuote ? `We have received your request for ${messageData.service || 'engineering services'}${messageData.projectLocation ? ` in ${messageData.projectLocation}` : ''} and our technical team is reviewing the requirements.` : 'We have received your inquiry and will provide you with the information you need.'}
+
+${isQuote ? `**Quote Request Summary:**
+${messageData.service ? `- Service Required: ${messageData.service}` : ''}
+${messageData.projectLocation ? `- Project Location: ${messageData.projectLocation}` : ''}
+${messageData.timeline ? `- Timeline: ${messageData.timeline}` : ''}
+${messageData.budget ? `- Budget Range: ${messageData.budget}` : ''}
+
+**Next Steps:**
+1. Our technical team will conduct a thorough review of your requirements
+2. We may contact you for additional specifications if needed
+3. You will receive a detailed proposal within 2-3 business days
+4. We can schedule a consultation to discuss project details
+5. Site visit can be arranged for accurate assessment
+
+**Priority Response:** Quote requests receive expedited handling during business hours (8 AM - 6 PM, Monday-Friday).` : `**How We'll Assist You:**
+- Dedicated support for your inquiry
+- Expert consultation on your electrical/mechanical needs  
+- Customized solutions for your specific requirements
+- Professional project assessment and recommendations`}
+
+**Contact Information:**
+📧 Email: ibrotech@symteconigerialimited.com
+📞 Phone: 08058244486 / 08087865823
+🌐 Website: symteconigerialimited.com
+📍 Address: Professional Services across Nigeria
+
+Best regards,
+
+**Symteco Nigerian Limited Team**
+Professional Electrical & Mechanical Engineering Solutions
+
+---
+*This email was sent in response to your inquiry received on ${new Date(messageData.receivedAt).toLocaleDateString()}. For immediate assistance, please call our support line.*`;
+
+    return {
+      subject,
+      body: encodeURIComponent(body),
+      to: messageData.email
+    };
+  };
+
+  const openMessageDetails = async (message: Message) => {
     setSelectedMessage(message);
+    setLoadingDetails(true);
+    
+    try {
+      // Fetch full message details from the conversation endpoint
+      const response = await fetch(`/api/admin/conversations/${message.conversationId || message.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.conversation) {
+          setMessageDetails(data.conversation);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching message details:', error);
+    } finally {
+      setLoadingDetails(false);
+    }
+    
     if (!message.read) {
       markAsRead(message.id);
     }
@@ -226,223 +335,521 @@ export default function AdminMessages() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Message Center</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage quotes, contacts, and customer communications
+            <h2 className="text-2xl font-bold text-gray-900">Message Center</h2>
+            <p className="text-gray-600 mt-1">
+              Manage customer inquiries and quote requests
             </p>
           </div>
-          <Button variant="secondary" onClick={() => fetchMessages()}>
-            Refresh
+          <Button 
+            variant="outline" 
+            onClick={fetchMessages}
+            className="flex items-center space-x-2 hover:bg-primary hover:text-white transition-all duration-300"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Refresh</span>
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50 hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Mail className="h-4 w-4 mr-2" />
+              <CardTitle className="text-sm font-medium flex items-center text-blue-700">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <Mail className="h-5 w-5 text-white" />
+                </div>
                 Total Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
+              <div className="text-sm text-blue-600 mt-1">All communications</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-orange-50 hover:shadow-xl transition-all duration-300 border-l-4 border-l-orange-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Clock className="h-4 w-4 mr-2" />
+              <CardTitle className="text-sm font-medium flex items-center text-orange-700">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
                 Unread
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">{stats.unread}</div>
+              <div className="text-3xl font-bold text-orange-600">{stats.unread}</div>
+              <div className="text-sm text-orange-600 mt-1">Need attention</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-primary/10 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <MessageSquare className="h-4 w-4 mr-2" />
+              <CardTitle className="text-sm font-medium flex items-center text-primary">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <MessageSquare className="h-5 w-5 text-white" />
+                </div>
                 Quote Requests
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-500">{stats.quotes}</div>
+              <div className="text-3xl font-bold text-primary">{stats.quotes}</div>
+              <div className="text-sm text-primary/70 mt-1">Business opportunities</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-green-50 hover:shadow-xl transition-all duration-300 border-l-4 border-l-green-500">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Mail className="h-4 w-4 mr-2" />
+              <CardTitle className="text-sm font-medium flex items-center text-green-700">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <Mail className="h-5 w-5 text-white" />
+                </div>
                 Contact Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-500">{stats.contacts}</div>
+              <div className="text-3xl font-bold text-green-600">{stats.contacts}</div>
+              <div className="text-sm text-green-600 mt-1">General inquiries</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Messages */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Messages</CardTitle>
-            <CardDescription>
-              View and respond to customer inquiries
-            </CardDescription>
+        <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-xl border-b border-primary/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold text-gray-900">Message Center</CardTitle>
+                  <CardDescription className="text-gray-600 mt-1">
+                    View and respond to customer inquiries and quote requests
+                  </CardDescription>
+                </div>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="all">All Messages</TabsTrigger>
-                <TabsTrigger value="unread">Unread ({stats.unread})</TabsTrigger>
-                <TabsTrigger value="quotes">Quotes ({stats.quotes})</TabsTrigger>
-                <TabsTrigger value="contacts">Contacts ({stats.contacts})</TabsTrigger>
+              <TabsList className="mb-8 bg-gradient-to-r from-primary/5 to-secondary/5 p-1 rounded-xl border-0 shadow-inner">
+                <TabsTrigger 
+                  value="all" 
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary rounded-xl transition-all duration-300 px-6 py-2"
+                >
+                  All Messages
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="unread"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-orange-600 rounded-xl transition-all duration-300 px-6 py-2"
+                >
+                  Unread ({stats.unread})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="quotes"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-primary rounded-xl transition-all duration-300 px-6 py-2"
+                >
+                  Quotes ({stats.quotes})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="contacts"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-green-600 rounded-xl transition-all duration-300 px-6 py-2"
+                >
+                  Contacts ({stats.contacts})
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeTab}>
                 {filteredMessages.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Mail className="h-10 w-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {activeTab === 'unread' ? 'No unread messages' : 'No messages found'}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    </h3>
+                    <p className="text-gray-600 mb-4">
                       Messages will appear here when customers send quotes or contact forms
                     </p>
+                    <Button 
+                      onClick={fetchMessages}
+                      className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all duration-300"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Messages
+                    </Button>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>From</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Received</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredMessages.map((message) => (
-                        <TableRow key={message.id} className={!message.read ? 'bg-muted/50' : ''}>
-                          <TableCell className="font-medium">
-                            {message.from}
-                            {!message.read && <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full inline-block"></span>}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {message.subject}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={message.type === 'quote' ? 'default' : 'secondary'}>
-                              {message.type === 'quote' ? 'Quote Request' : 'Contact'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(message.receivedAt)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {message.read ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <Clock className="h-4 w-4 text-orange-500" />
-                              )}
-                              {message.replied && (
-                                <Reply className="h-4 w-4 text-blue-500" />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center gap-2 justify-end">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => viewMessage(message)}
+                  <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 hover:bg-gray-100">
+                          <TableHead className="font-semibold text-gray-700">From</TableHead>
+                          <TableHead className="font-semibold text-gray-700">Subject</TableHead>
+                          <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                          <TableHead className="font-semibold text-gray-700">Received</TableHead>
+                          <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                          <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredMessages.map((message) => (
+                          <TableRow 
+                            key={message.id} 
+                            className={`hover:bg-gray-50 transition-colors ${!message.read ? 'bg-blue-50/50 border-l-4 border-l-blue-500' : ''}`}
+                          >
+                            <TableCell className="font-medium">
+                              <div className="flex items-center">
+                                {message.from}
+                                {!message.read && <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>}
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              <div className="truncate font-medium">{message.subject}</div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={message.type === 'quote' ? 'default' : 'secondary'}
+                                className={message.type === 'quote' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'}
+                              >
+                                {message.type === 'quote' ? '💼 Quote Request' : '📧 Contact'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              {formatDate(message.receivedAt)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {message.read ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Clock className="h-4 w-4 text-orange-500" />
+                                )}
+                              </div>
+                            </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center gap-2 justify-end">
+                                  <Button  
+                                    variant="outline"  
+                                    size="sm" 
+                                    onClick={() => openMessageDetails(message)} 
+                                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-300"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>{message.subject}</DialogTitle>
-                                    <DialogDescription>
-                                      From: {message.from} • {formatDate(message.receivedAt)}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="max-h-96 overflow-y-auto">
-                                    <div className="whitespace-pre-wrap text-sm">
-                                      {message.textContent}
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openReplyDialog(message)}
-                              >
-                                <Reply className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                                  <Button  
+                                    variant="outline"  
+                                    size="sm" 
+                                    onClick={() => confirmDeleteMessage(message)} 
+                                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
 
-        {/* Reply Dialog */}
-        <Dialog open={!!replyDialog} onOpenChange={() => setReplyDialog(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Reply to Message</DialogTitle>
-              <DialogDescription>
-                Replying to: {replyDialog?.from}
+        {/* Enhanced Message Details Dialog */}
+        <Dialog open={!!selectedMessage} onOpenChange={() => {
+          setSelectedMessage(null);
+          setMessageDetails(null);
+        }}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-2xl font-bold flex items-center text-gray-900">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 shadow-lg ${
+                  selectedMessage?.type === 'quote' 
+                    ? 'bg-gradient-to-br from-primary to-primary/80' 
+                    : 'bg-gradient-to-br from-green-500 to-green-600'
+                }`}>
+                  {selectedMessage?.type === 'quote' ? (
+                    <MessageSquare className="h-5 w-5 text-white" />
+                  ) : (
+                    <Mail className="h-5 w-5 text-white" />
+                  )}
+                </div>
+                {selectedMessage?.subject}
+              </DialogTitle>
+              <DialogDescription className="text-base mt-2">
+                <div className="flex flex-wrap items-center gap-4 text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant={selectedMessage?.type === 'quote' ? 'default' : 'secondary'}
+                      className={selectedMessage?.type === 'quote' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'}
+                    >
+                      {selectedMessage?.type === 'quote' ? '💼 Quote Request' : '📧 Contact Message'}
+                    </Badge>
+                  </div>
+                  <span><strong>From:</strong> {selectedMessage?.fromName} ({selectedMessage?.from})</span>
+                  <span><strong>Received:</strong> {selectedMessage ? formatDate(selectedMessage.receivedAt) : ''}</span>
+                </div>
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="replySubject">Subject</Label>
-                <Input
-                  id="replySubject"
-                  value={replySubject}
-                  onChange={(e) => setReplySubject(e.target.value)}
-                />
+            {loadingDetails ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="replyMessage">Message</Label>
-                <Textarea
-                  id="replyMessage"
-                  value={replyMessage}
-                  onChange={(e) => setReplyMessage(e.target.value)}
-                  rows={8}
-                  placeholder="Type your reply here..."
-                />
+            ) : messageDetails ? (
+              <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+                {messageDetails.messages?.map((msg: any, index: number) => (
+                  <div key={msg.id || index} className="space-y-4">
+                    {/* Message Header */}
+                    <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                            msg.type === 'quote' 
+                              ? 'bg-primary text-white' 
+                              : 'bg-green-500 text-white'
+                          }`}>
+                            {msg.fromName?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">{msg.fromName}</div>
+                            <div className="text-sm text-gray-500">{msg.fromEmail}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">{formatDate(msg.receivedAt)}</div>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {msg.read ? (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Read
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Unread
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Subject */}
+                      <div className="mb-3">
+                        <div className="text-sm text-gray-600 font-medium">Subject:</div>
+                        <div className="text-gray-900 font-semibold">{msg.subject}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Message Content */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 px-6 py-3 border-b border-gray-200">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-gray-700">Message Content</span>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        {(() => {
+                          const messageData = parseMessageContent(msg);
+                          const gmailTemplate = generateGmailReplyTemplate({
+                            ...messageData,
+                            type: msg.type,
+                            receivedAt: msg.receivedAt,
+                            subject: msg.subject
+                          });
+
+                          return (
+                            <div className="space-y-6">
+                              {/* Client Information Section */}
+                              <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-5 border border-blue-100">
+                                <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                                  <User className="h-5 w-5" />
+                                  Client Information
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-gray-600">Name</label>
+                                    <p className="text-gray-900 font-medium">{messageData.name || 'Not provided'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-gray-600">Email</label>
+                                    <p className="text-gray-900 font-medium">{messageData.email || 'Not provided'}</p>
+                                  </div>
+                                  {messageData.phone && (
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-600">Phone</label>
+                                      <p className="text-gray-900 font-medium">{messageData.phone}</p>
+                                    </div>
+                                  )}
+                                  {messageData.company && (
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-600">Company</label>
+                                      <p className="text-gray-900 font-medium">{messageData.company}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Project Details (for quotes) */}
+                              {msg.type === 'quote' && (
+                                <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-5 border border-orange-100">
+                                  <h4 className="text-lg font-semibold text-orange-900 mb-4 flex items-center gap-2">
+                                    <Building className="h-5 w-5" />
+                                    Project Requirements
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {messageData.service && (
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-600">Service Required</label>
+                                        <p className="text-gray-900 font-medium">{messageData.service}</p>
+                                      </div>
+                                    )}
+                                    {messageData.projectLocation && (
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-600">Project Location</label>
+                                        <p className="text-gray-900 font-medium">{messageData.projectLocation}</p>
+                                      </div>
+                                    )}
+                                    {messageData.timeline && (
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-600">Timeline</label>
+                                        <p className="text-gray-900 font-medium">{messageData.timeline}</p>
+                                      </div>
+                                    )}
+                                    {messageData.budget && (
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-600">Budget Range</label>
+                                        <p className="text-gray-900 font-medium">{messageData.budget}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Full Message Content */}
+                              <div className="bg-white rounded-lg p-5 border border-gray-200">
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                  <FileText className="h-5 w-5" />
+                                  Full Message
+                                </h4>
+                                <div className="bg-gray-50 rounded-lg p-4 border">
+                                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-base">
+                                    {messageData.fullMessage || 'No message content available'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Gmail Reply Section */}
+                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 border border-green-200">
+                                <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
+                                  <Mail className="h-5 w-5" />
+                                  2-Hour Reply Commitment
+                                </h4>
+                                <div className="space-y-4">
+                                  <p className="text-green-800 text-sm leading-relaxed">
+                                    <strong>Professional Response Standard:</strong> All {msg.type === 'quote' ? 'quote requests' : 'inquiries'} 
+                                    receive acknowledgment within 2 hours during business hours (8 AM - 6 PM, Monday-Friday).
+                                  </p>
+                                  
+                                  <div className="bg-white rounded-lg p-4 border border-green-200">
+                                    <h5 className="font-semibold text-green-900 mb-2">Quick Gmail Reply</h5>
+                                    <p className="text-sm text-green-700 mb-3">
+                                      Click the button below to open Gmail with a pre-filled professional response template:
+                                    </p>
+                                    
+                                    <a
+                                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${gmailTemplate.to}&su=${gmailTemplate.subject}&body=${gmailTemplate.body}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-sm"
+                                    >
+                                      <Mail className="h-4 w-4" />
+                                      Reply via Gmail
+                                    </a>
+                                    
+                                    <div className="mt-3 text-xs text-green-600">
+                                      <p><strong>Template includes:</strong> Professional greeting, project summary, next steps, and company contact information</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                    <div className="flex items-start gap-2">
+                                      <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                      <div className="text-xs text-yellow-800">
+                                        <p><strong>Response Priority:</strong> {msg.type === 'quote' ? 'Quote requests' : 'General inquiries'} during business hours should be acknowledged within 2 hours. After-hours messages receive response by next business day 9 AM.</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        
+                        {/* Attachments Info */}
+                        {msg.hasAttachments && (
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-2 text-blue-700">
+                              <Mail className="h-4 w-4" />
+                              <span className="text-sm font-medium">This message may contain attachments</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Action Buttons */}
+                <div className="flex justify-between pt-4 border-t border-gray-200 sticky bottom-0 bg-white">
+                  <Button 
+                    variant="outline"
+                    onClick={() => selectedMessage && confirmDeleteMessage(selectedMessage)}
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-300"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Message
+                  </Button>
+                  
+                  <div className="flex space-x-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSelectedMessage(null);
+                        setMessageDetails(null);
+                      }}
+                      className="px-6"
+                    >
+                      Close
+                    </Button>
+                    {selectedMessage && !selectedMessage.read && (
+                      <Button 
+                        onClick={() => {
+                          if (selectedMessage) {
+                            markAsRead(selectedMessage.id);
+                            setSelectedMessage(null);
+                            setMessageDetails(null);
+                          }
+                        }}
+                        className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg transition-all duration-300 px-6 text-white"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark as Read
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setReplyDialog(null)}>
-                  Cancel
-                </Button>
-                <Button className="bg-primary text-primary-foreground" onClick={sendReply} disabled={sendingReply}>
-                  {sendingReply ? 'Sending...' : 'Send Reply'}
-                </Button>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Failed to load message details</p>
               </div>
-            </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -450,17 +857,4 @@ export default function AdminMessages() {
   );
 }
 
-// Ensure this page is server-side rendered and protected during build
-export async function getServerSideProps(context: any) {
-  const { getSession } = await import('next-auth/react');
-  const session = await getSession(context);
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/admin/login',
-        permanent: false,
-      },
-    };
-  }
-  return { props: {} };
-}
+// No server-side props needed with JWT auth

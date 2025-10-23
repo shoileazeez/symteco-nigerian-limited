@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
+import { verifyToken, JWTPayload } from '../../../lib/jwt';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req });
+  const user = verifyToken(req, res);
   const { id } = req.query;
 
   if (typeof id !== 'string') {
@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Other operations require authentication
-  if (!session) {
+  if (!user) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
