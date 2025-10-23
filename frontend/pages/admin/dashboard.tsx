@@ -102,34 +102,34 @@ export default function AdminDashboard() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-secondary/20 to-transparent rounded-full -translate-y-48 translate-x-48"></div>
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-white/10 to-transparent rounded-full translate-y-36 -translate-x-36"></div>
           
-          <div className="relative z-10 p-8 lg:p-12">
+          <div className="relative z-10 p-6 sm:p-8 lg:p-12">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-6 lg:space-y-0">
               {/* Main Content */}
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl border border-white/20">
-                    <Building2 className="h-12 w-12 text-white" />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl border border-white/20">
+                    <Building2 className="h-10 w-10 sm:h-12 sm:w-12 text-white" />
                   </div>
                   <div className="absolute -inset-2 bg-gradient-to-br from-secondary/30 to-primary/30 rounded-3xl opacity-50 blur-xl"></div>
                 </div>
                 
                 <div className="text-white space-y-3">
                   <div className="space-y-1">
-                    <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
                       Welcome Back
                     </h1>
                     <div className="flex items-center space-x-3">
-                      <div className="text-2xl font-semibold text-secondary">SYMTECO</div>
+                      <div className="text-xl sm:text-2xl font-semibold text-secondary">SYMTECO</div>
                       <div className="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
-                      <div className="text-lg text-white/80">Admin Portal</div>
+                      <div className="text-base sm:text-lg text-white/80">Admin Portal</div>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <p className="text-xl text-white/90 font-medium">
+                    <p className="text-lg sm:text-xl text-white/90 font-medium">
                       Professional Construction Management Hub
                     </p>
-                    <p className="text-white/70 text-base max-w-2xl">
+                    <p className="text-white/70 text-sm sm:text-base max-w-2xl">
                       Manage your project portfolio, handle client communications, and drive business growth through our comprehensive management platform.
                     </p>
                   </div>
@@ -137,25 +137,25 @@ export default function AdminDashboard() {
               </div>
               
               {/* Status Card */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl min-w-[280px]">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl w-full sm:min-w-[280px] lg:w-auto">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="text-white">
                       <p className="text-sm font-medium text-white/80">System Status</p>
-                      <p className="text-xl font-bold">All Systems Operational</p>
+                      <p className="text-lg sm:text-xl font-bold">All Systems Operational</p>
                     </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
-                      <CheckCircle className="h-6 w-6 text-white" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                      <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-white">{stats.totalProjects}</div>
+                      <div className="text-xl sm:text-2xl font-bold text-white">{stats.totalProjects}</div>
                       <div className="text-xs text-white/70">Projects</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-secondary">{stats.unreadMessages}</div>
+                      <div className="text-xl sm:text-2xl font-bold text-secondary">{stats.unreadMessages}</div>
                       <div className="text-xs text-white/70">New Messages</div>
                     </div>
                   </div>
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Enhanced Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-blue-50 to-blue-100 hover:shadow-2xl transition-all duration-500 group overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10"></div>
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-y-16 translate-x-16"></div>
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Enhanced Quick Actions */}
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
           <Card className="border-0 shadow-xl bg-white hover:shadow-2xl transition-all duration-500 group overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
@@ -340,12 +340,12 @@ export default function AdminDashboard() {
               </div>
               
               <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div>
                     <p className="font-semibold text-primary">Project Portfolio</p>
                     <p className="text-sm text-muted-foreground">Showcase your completed work</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <div className="text-2xl font-bold text-primary">{stats.totalProjects}</div>
                     <div className="text-xs text-muted-foreground">Total projects</div>
                   </div>
@@ -389,7 +389,7 @@ export default function AdminDashboard() {
                   </Button>
                 </Link>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Link href="/admin/messages?tab=quotes">
                     <Button variant="outline" className="w-full justify-center hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 transition-all duration-300 py-3 border-2 border-orange-200 group">
                       <div className="text-center">
@@ -411,12 +411,12 @@ export default function AdminDashboard() {
               </div>
               
               <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div>
                     <p className="font-semibold text-green-700">Message Center</p>
                     <p className="text-sm text-green-600">Client communication management</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <div className="text-2xl font-bold text-green-600">{stats.unreadMessages}</div>
                     <div className="text-xs text-green-600">Unread messages</div>
                   </div>
@@ -445,10 +445,10 @@ export default function AdminDashboard() {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-6 sm:p-8">
             <div className="space-y-6">
               {/* Performance Indicators */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">

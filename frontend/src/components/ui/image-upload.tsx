@@ -151,9 +151,10 @@ export default function ImageUpload({
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          multiple
           className="hidden"
           onChange={(e) => handleFileSelect(e.target.files)}
+          // Only allow multiple when maxImages > 1
+          {...(maxImages > 1 ? { multiple: true } : {})}
         />
         
         <div className="space-y-2">
@@ -182,14 +183,14 @@ export default function ImageUpload({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            PNG, JPG, GIF up to 5MB each. Max {maxImages} images.
+            PNG, JPG, GIF up to 5MB each. {maxImages === 1 ? 'Upload 1 image (required for product list)' : `Max ${maxImages} images.`}
           </p>
         </div>
       </div>
 
       {/* Image Preview Grid */}
       {value.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className={maxImages === 1 ? 'w-full' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'}>
           {value.map((imageUrl, index) => (
             <div key={index} className="relative group">
               <div className="relative aspect-square rounded-lg overflow-hidden border border-muted">
@@ -229,10 +230,11 @@ export default function ImageUpload({
           <div className="space-y-1">
             {value.map((url, index) => (
               <div key={index} className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs font-mono">
+                <Badge variant="outline" className="text-xs font-mono truncate">
                   {index === 0 ? 'Main: ' : `${index + 1}: `}
-                  {url.substring(0, 50)}...
+                  {url}
                 </Badge>
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">View</a>
                 <Button
                   type="button"
                   variant="ghost"

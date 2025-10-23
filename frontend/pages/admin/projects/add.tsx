@@ -124,10 +124,11 @@ export default function AddProject() {
       return;
     }
 
-    if (formData.images.length === 0) {
+    // UI-only constraint: require exactly one image when creating
+    if (!isEdit && formData.images.length === 0) {
       toast({
         title: 'Error',
-        description: 'Please upload at least one image',
+        description: 'Please upload one image for the project',
         variant: 'destructive',
       });
       return;
@@ -277,7 +278,7 @@ export default function AddProject() {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="year">Year *</Label>
                   <Input
