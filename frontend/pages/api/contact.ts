@@ -160,41 +160,72 @@ const formatContactEmail = (data: ContactFormData, isQuote: boolean = false) => 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const data: ContactFormData = req.body;
+  const data = req.body;
+  
+  // Add comprehensive logging for debugging
+  console.log('=== CONTACT API DEBUG ===');
+  console.log('Full request body:', JSON.stringify(data, null, 2));
+  console.log('Individual fields check:');
+  console.log('- name:', data.name);
+  console.log('- email:', data.email);
+  console.log('- service:', data.service);
+  console.log('- message:', data.message);
+  console.log('- details:', data.details);
+  console.log('- projectLocation:', data.projectLocation);
+  console.log('- timeline:', data.timeline);
+  console.log('- budget:', data.budget);
+  console.log('========================');
 
   // Validate required fields
-  if (!data.name || !data.email) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'Name and email are required fields.' 
-    });
+  if (!data.name || !data.email || (!data.message && !data.details)) {
+    return res.status(400).json({ message: 'Missing required fields' });
   }
 
   // Determine if this is a quote request or regular contact
   // More robust detection: check for quote-specific fields or keywords
-  const isQuote = Boolean(
-    data.details || 
+  const hasQuoteFields = Boolean(
     data.projectLocation || 
     data.timeline || 
-    data.budget ||
+    data.budget
+  );
+  
+  // Check if using quote modal (has 'details' field) vs contact form (has 'message' field)
+  const isFromQuoteModal = Boolean(data.details && !data.message);
+  const isFromContactForm = Boolean(data.message && !data.details);
+  
+  const hasQuoteKeywords = Boolean(
     (data.service && (
       data.service.toLowerCase().includes('quote') ||
       data.service.toLowerCase().includes('electrical') ||
       data.service.toLowerCase().includes('mechanical') ||
       data.service.toLowerCase().includes('installation') ||
-      data.service.toLowerCase().includes('maintenance')
+      data.service.toLowerCase().includes('maintenance') ||
+      data.service.toLowerCase().includes('transformer') ||
+      data.service.toLowerCase().includes('substation') ||
+      data.service.toLowerCase().includes('distribution')
     )) ||
-    (data.message && (
-      data.message.toLowerCase().includes('quote') ||
-      data.message.toLowerCase().includes('project') ||
-      data.message.toLowerCase().includes('installation') ||
-      data.message.toLowerCase().includes('budget') ||
-      data.message.toLowerCase().includes('timeline')
+    ((data.message || data.details) && (
+      (data.message && data.message.toLowerCase().includes('quote')) ||
+      (data.details && data.details.toLowerCase().includes('quote')) ||
+      (data.message && data.message.toLowerCase().includes('project')) ||
+      (data.details && data.details.toLowerCase().includes('project'))
     ))
   );
+  
+  // Logic: Quote if from quote modal OR has quote-specific fields OR has quote keywords but not from contact form
+  const isQuote = isFromQuoteModal || hasQuoteFields || (hasQuoteKeywords && !isFromContactForm);
+  
+  console.log('=== ENHANCED TYPE DETECTION ===');
+  console.log('hasQuoteFields:', hasQuoteFields);
+  console.log('isFromQuoteModal:', isFromQuoteModal);
+  console.log('isFromContactForm:', isFromContactForm);
+  console.log('hasQuoteKeywords:', hasQuoteKeywords);
+  console.log('Final isQuote decision:', isQuote);
+  console.log('Type will be:', isQuote ? 'quote' : 'contact');
+  console.log('================================');
   
   try {
     console.log('Processing contact form submission (Mailjet only):', { 
