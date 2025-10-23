@@ -104,16 +104,12 @@ export default function AdminMessages() {
 
     const markAsRead = async (messageId: string) => {
     try {
-      const response = await fetch('/api/admin/messages', {
-        method: 'PUT',
+      const response = await fetch(`/api/admin/messages/${messageId}/read`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeader()
-        },
-        body: JSON.stringify({
-          messageId,
-          read: true
-        })
+        }
       });
       
       if (response.ok) {
@@ -121,11 +117,25 @@ export default function AdminMessages() {
           msg.id === messageId ? { ...msg, read: true } : msg
         ));
         setStats(prev => ({ ...prev, unread: prev.unread - 1 }));
+        toast({
+          title: 'Success',
+          description: 'Message marked as read',
+        });
       } else {
         console.error('Failed to mark message as read:', response.status);
+        toast({
+          title: 'Error',
+          description: 'Failed to mark message as read',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error marking message as read:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark message as read',
+        variant: 'destructive',
+      });
     }
   };
 
