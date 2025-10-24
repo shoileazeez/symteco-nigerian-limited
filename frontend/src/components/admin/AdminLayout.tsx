@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '../../../hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { LogOut, User, Menu, X, BarChart3, Wrench, MessageSquare, ChevronUp, Settings } from 'lucide-react';
+import { LogOut, User, Menu, X, BarChart3, Wrench, MessageSquare, ChevronUp } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -135,25 +135,15 @@ export default function AdminLayout({ children, title }: Props) {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start border-primary/20 hover:bg-primary/5 transition-all duration-200"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-                <Button 
-                  onClick={handleLogout}
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
+              <Button 
+                onClick={handleLogout}
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
