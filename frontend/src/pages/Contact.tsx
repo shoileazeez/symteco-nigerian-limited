@@ -54,7 +54,8 @@ const Contact = () => {
         phone: formData.phone,
         service: formData.service,
         projectLocation: formData.projectLocation,
-        message: formData.message
+        message: formData.message,
+        origin: "contact"
       });
       
       // Dismiss loading toast

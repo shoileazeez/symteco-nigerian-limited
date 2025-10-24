@@ -59,7 +59,8 @@ const QuoteModal = ({ trigger }: { trigger: React.ReactNode }) => {
         timeline: formData.timeline,
         budget: formData.budget,
         details: formData.details,
-        message: `Project Details: ${formData.details}\n\nLocation: ${formData.projectLocation}\nTimeline: ${formData.timeline}\nBudget: ${formData.budget}`
+        message: `Project Details: ${formData.details}\n\nLocation: ${formData.projectLocation}\nTimeline: ${formData.timeline}\nBudget: ${formData.budget}`,
+        origin: "quote"
       });
       
       // Dismiss loading toast

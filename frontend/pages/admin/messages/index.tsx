@@ -211,7 +211,7 @@ export default function AdminMessages() {
     };
 
     // If database fields are empty, try to parse from message content as fallback
-    if (!parsed.phone && !parsed.company && !parsed.service) {
+    if (!parsed.phone && !parsed.company && !parsed.service && !parsed.projectLocation) {
       const content = parsed.fullMessage;
       
       const phoneMatch = content.match(/Phone[:\s]*([^\n\r]+)/i);
@@ -270,10 +270,10 @@ ${messageData.budget ? `- Budget Range: ${messageData.budget}` : ''}
 - Professional project assessment and recommendations`}
 
 **Contact Information:**
-📧 Email: ibrotech@symteconigerialimited.com
+📧 Email: ibrotech144@gmail.com
 📞 Phone: 08058244486 / 08087865823
 🌐 Website: symteconigerialimited.com
-📍 Address: Professional Services across Nigeria
+📍 Address: Suite 11, LSDPC Phase 1 Shopping Complex, Oba Ogunji Road, Pen-Cinema, Agege, Lagos
 
 Best regards,
 
@@ -783,17 +783,17 @@ Professional Electrical & Mechanical Engineering Solutions
                                 </div>
                               </div>
 
-                              {/* Project Details (for quotes) */}
-                              {msg.type === 'quote' && (
-                                <div className="bg-gradient-to-br from-orange-50 to-white rounded-lg p-4 sm:p-5 border border-orange-100">
-                                  <h4 className="text-base sm:text-lg font-semibold text-orange-900 mb-3 sm:mb-4 flex items-center gap-2">
+                              {/* Service & Project Details (for both contacts and quotes) */}
+                              {(messageData.service || messageData.projectLocation || messageData.timeline || messageData.budget) && (
+                                <div className={`bg-gradient-to-br ${msg.type === 'quote' ? 'from-orange-50 to-white border-orange-100' : 'from-green-50 to-white border-green-100'} rounded-lg p-4 sm:p-5 border`}>
+                                  <h4 className={`text-base sm:text-lg font-semibold ${msg.type === 'quote' ? 'text-orange-900' : 'text-green-900'} mb-3 sm:mb-4 flex items-center gap-2`}>
                                     <Building className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    Project Requirements
+                                    {msg.type === 'quote' ? 'Project Requirements' : 'Service & Project Information'}
                                   </h4>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     {messageData.service && (
                                       <div>
-                                        <label className="text-xs sm:text-sm font-medium text-gray-600">Service Required</label>
+                                        <label className="text-xs sm:text-sm font-medium text-gray-600">Service {msg.type === 'quote' ? 'Required' : 'Interested'}</label>
                                         <p className="text-gray-900 font-medium text-sm sm:text-base break-words">{messageData.service}</p>
                                       </div>
                                     )}
