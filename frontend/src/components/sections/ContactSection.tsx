@@ -35,7 +35,10 @@ const ContactSection = () => {
     
     setLoading(true);
     try {
-      await axios.post("/api/contact", formData);
+      await axios.post("/api/contact", {
+        ...formData,
+        origin: "contact"
+      });
       toast({
         title: "Message Sent Successfully!",
         description: "Thank you for your inquiry. We'll review your message and get back to you within 24 hours.",

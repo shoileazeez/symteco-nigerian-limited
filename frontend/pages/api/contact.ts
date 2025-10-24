@@ -24,6 +24,8 @@ interface ContactFormData {
   // Contact form specific fields
   firstName?: string;
   lastName?: string;
+  // Origin field to explicitly determine form type
+  origin?: 'contact' | 'quote';
 }
 
 const formatContactEmail = (data: ContactFormData, isQuote: boolean = false) => {
@@ -177,6 +179,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log('- projectLocation:', data.projectLocation);
   console.log('- timeline:', data.timeline);
   console.log('- budget:', data.budget);
+  console.log('- origin:', data.origin);
   console.log('========================');
 
   // Validate required fields
@@ -184,48 +187,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  // Determine if this is a quote request or regular contact
-  // More robust detection: check for quote-specific fields or keywords
-  const hasQuoteFields = Boolean(
-    data.projectLocation || 
-    data.timeline || 
-    data.budget
-  );
+  // Determine message type: prefer explicit origin field, fallback to detection
+  let isQuote = false;
   
-  // Check if using quote modal (has 'details' field) vs contact form (has 'message' field)
-  const isFromQuoteModal = Boolean(data.details && !data.message);
-  const isFromContactForm = Boolean(data.message && !data.details);
-  
-  const hasQuoteKeywords = Boolean(
-    (data.service && (
-      data.service.toLowerCase().includes('quote') ||
-      data.service.toLowerCase().includes('electrical') ||
-      data.service.toLowerCase().includes('mechanical') ||
-      data.service.toLowerCase().includes('installation') ||
-      data.service.toLowerCase().includes('maintenance') ||
-      data.service.toLowerCase().includes('transformer') ||
-      data.service.toLowerCase().includes('substation') ||
-      data.service.toLowerCase().includes('distribution')
-    )) ||
-    ((data.message || data.details) && (
-      (data.message && data.message.toLowerCase().includes('quote')) ||
-      (data.details && data.details.toLowerCase().includes('quote')) ||
-      (data.message && data.message.toLowerCase().includes('project')) ||
-      (data.details && data.details.toLowerCase().includes('project'))
-    ))
-  );
-  
-  // Logic: Quote if from quote modal OR has quote-specific fields OR has quote keywords but not from contact form
-  const isQuote = isFromQuoteModal || hasQuoteFields || (hasQuoteKeywords && !isFromContactForm);
-  
-  console.log('=== ENHANCED TYPE DETECTION ===');
-  console.log('hasQuoteFields:', hasQuoteFields);
-  console.log('isFromQuoteModal:', isFromQuoteModal);
-  console.log('isFromContactForm:', isFromContactForm);
-  console.log('hasQuoteKeywords:', hasQuoteKeywords);
-  console.log('Final isQuote decision:', isQuote);
-  console.log('Type will be:', isQuote ? 'quote' : 'contact');
-  console.log('================================');
+  if (data.origin) {
+    // Use explicit origin field when present (most reliable)
+    isQuote = data.origin === 'quote';
+    console.log('=== EXPLICIT ORIGIN DETECTION ===');
+    console.log('Origin field provided:', data.origin);
+    console.log('Type determined by origin:', isQuote ? 'quote' : 'contact');
+    console.log('================================');
+  } else {
+    // Fallback to enhanced detection logic when origin not provided
+    console.log('=== FALLBACK DETECTION (no origin field) ===');
+    
+    const hasStrongQuoteFields = Boolean(
+      data.company ||
+      data.timeline ||
+      data.budget
+    );
+
+    const detailsLength = typeof data.details === 'string'
+      ? data.details.trim().length
+      : (data.message ? String(data.message).trim().length : 0);
+    const hasLongDetails = detailsLength > 200; // long descriptions likely indicate a quote
+
+    const hasQuoteKeywords = Boolean(
+      (data.service && (
+        data.service.toLowerCase().includes('quote') ||
+        data.service.toLowerCase().includes('transformer') ||
+        data.service.toLowerCase().includes('substation') ||
+        data.service.toLowerCase().includes('distribution') ||
+        data.service.toLowerCase().includes('installation') ||
+        data.service.toLowerCase().includes('maintenance') ||
+        data.service.toLowerCase().includes('electrical') ||
+        data.service.toLowerCase().includes('mechanical')
+      )) ||
+      ((data.message || data.details) && (
+        (data.message && data.message.toLowerCase().includes('quote')) ||
+        (data.details && data.details.toLowerCase().includes('quote')) ||
+        (data.message && data.message.toLowerCase().includes('budget')) ||
+        (data.details && data.details.toLowerCase().includes('budget')) ||
+        (data.message && data.message.toLowerCase().includes('timeline')) ||
+        (data.details && data.details.toLowerCase().includes('timeline'))
+      ))
+    );
+
+    // Default to quote if strong quote fields present, long details, or keyword matches.
+    isQuote = hasStrongQuoteFields || hasLongDetails || hasQuoteKeywords;
+
+    console.log('hasStrongQuoteFields:', hasStrongQuoteFields);
+    console.log('hasLongDetails:', hasLongDetails);
+    console.log('hasQuoteKeywords:', hasQuoteKeywords);
+    console.log('Final isQuote decision:', isQuote);
+    console.log('Details length:', detailsLength);
+    console.log('==========================================');
+  }
   
   try {
     console.log('Processing contact form submission (Mailjet only):', { 
