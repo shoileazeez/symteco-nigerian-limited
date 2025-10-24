@@ -177,7 +177,8 @@ export default function AdminLayout({ children, title }: Props) {
           ${collapsed ? 'lg:w-20' : 'lg:w-64'} w-64 bg-white/95 backdrop-blur-sm border-r border-primary/10 h-screen shadow-xl
           transform-gpu will-change-transform
         `}>
-          <div className="p-6 md:p-4 border-b border-primary/10 flex items-center justify-between">
+          {/* Sidebar header - desktop only (mobile has logo in top header) */}
+          <div className="p-6 md:p-4 border-b border-primary/10 hidden lg:flex items-center justify-between">
             <Link href="/admin/dashboard" className={`flex items-center space-x-2 ${collapsed ? 'justify-center' : 'justify-start'}`}>
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
@@ -204,7 +205,7 @@ export default function AdminLayout({ children, title }: Props) {
             </button>
           </div>
           
-          <nav className="p-4 md:p-2 space-y-2">
+          <nav className="p-4 md:p-2 space-y-2 lg:mt-0 mt-4">
             <Link href="/admin/dashboard" className={`flex items-center space-x-3 ${collapsed ? 'justify-center' : 'justify-start'} px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-300 group hover:shadow-md hover:shadow-primary/5 active:scale-95`}>
               <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center group-hover:scale-110 group-hover:from-primary/30 group-hover:to-secondary/30 transition-all duration-300">
                 <BarChart3 className="h-4 w-4 text-primary group-hover:text-primary/80 transition-colors duration-300" />
@@ -227,8 +228,8 @@ export default function AdminLayout({ children, title }: Props) {
             </Link>
           </nav>
           
-          {/* User info and logout (responsive) */}
-          <div className="absolute bottom-4 left-0 right-0 px-4">
+          {/* User info and logout (desktop only - mobile has it in header) */}
+          <div className="absolute bottom-4 left-0 right-0 px-4 hidden lg:block">
             <div className="mx-auto max-w-xs lg:max-w-full bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-3 md:p-2 lg:p-4 border border-primary/20">
               <div className={`flex ${collapsed ? 'flex-col items-center' : 'items-center'} space-x-0 ${collapsed ? 'space-y-3' : 'space-x-2'} mb-3`}>
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
